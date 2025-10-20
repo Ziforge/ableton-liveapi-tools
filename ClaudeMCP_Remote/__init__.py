@@ -718,6 +718,62 @@ class ClaudeMCP:
             elif action == 'get_device_type':
                 return self.tools.get_device_type(command.get('track_index', 0), command.get('device_index', 0))
 
+            # Take Lanes Support (Live 12)
+            elif action == 'get_take_lanes':
+                return self.tools.get_take_lanes(command.get('track_index', 0))
+            elif action == 'create_take_lane':
+                return self.tools.create_take_lane(command.get('track_index', 0), command.get('name'))
+            elif action == 'get_take_lane_name':
+                return self.tools.get_take_lane_name(command.get('track_index', 0), command.get('lane_index', 0))
+            elif action == 'set_take_lane_name':
+                return self.tools.set_take_lane_name(command.get('track_index', 0), command.get('lane_index', 0), command.get('name', ''))
+            elif action == 'create_audio_clip_in_lane':
+                return self.tools.create_audio_clip_in_lane(command.get('track_index', 0), command.get('lane_index', 0), command.get('length', 4.0))
+            elif action == 'create_midi_clip_in_lane':
+                return self.tools.create_midi_clip_in_lane(command.get('track_index', 0), command.get('lane_index', 0), command.get('length', 4.0))
+            elif action == 'get_clips_in_take_lane':
+                return self.tools.get_clips_in_take_lane(command.get('track_index', 0), command.get('lane_index', 0))
+            elif action == 'delete_take_lane':
+                return self.tools.delete_take_lane(command.get('track_index', 0), command.get('lane_index', 0))
+
+            # Application Methods (Live 12)
+            elif action == 'get_build_id':
+                return self.tools.get_build_id()
+            elif action == 'get_variant':
+                return self.tools.get_variant()
+            elif action == 'show_message_box':
+                return self.tools.show_message_box(command.get('message', ''), command.get('title', 'Message'))
+            elif action == 'get_application_version':
+                return self.tools.get_application_version()
+
+            # Device Parameter Display Values (Live 12)
+            elif action == 'get_device_param_display_value':
+                return self.tools.get_device_param_display_value(command.get('track_index', 0), command.get('device_index', 0), command.get('param_index', 0))
+            elif action == 'get_all_param_display_values':
+                return self.tools.get_all_param_display_values(command.get('track_index', 0), command.get('device_index', 0))
+
+            # Missing Track/Clip/Scene Properties
+            elif action == 'get_clip_start_time':
+                return self.tools.get_clip_start_time(command.get('track_index', 0), command.get('clip_index', 0))
+            elif action == 'set_clip_start_time':
+                return self.tools.set_clip_start_time(command.get('track_index', 0), command.get('clip_index', 0), command.get('start_time', 0.0))
+            elif action == 'get_track_is_foldable':
+                return self.tools.get_track_is_foldable(command.get('track_index', 0))
+            elif action == 'get_track_is_frozen':
+                return self.tools.get_track_is_frozen(command.get('track_index', 0))
+            elif action == 'get_scene_is_empty':
+                return self.tools.get_scene_is_empty(command.get('scene_index', 0))
+            elif action == 'get_scene_tempo':
+                return self.tools.get_scene_tempo(command.get('scene_index', 0))
+            elif action == 'get_arrangement_overdub':
+                return self.tools.get_arrangement_overdub()
+            elif action == 'set_record_mode':
+                return self.tools.set_record_mode(command.get('mode', 0))
+            elif action == 'get_signature_numerator':
+                return self.tools.get_signature_numerator()
+            elif action == 'get_signature_denominator':
+                return self.tools.get_signature_denominator()
+
             # Unknown action
             else:
                 return {

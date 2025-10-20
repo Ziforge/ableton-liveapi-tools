@@ -79,7 +79,7 @@ stateDiagram-v2
 
 ### 2. LiveAPITools Class
 
-Encapsulates all 196 LiveAPI operations (including Max for Live, CV Tools, master/return tracks, follow actions, and more).
+Encapsulates all 220 LiveAPI operations (including Max for Live, CV Tools, master/return tracks, follow actions, and more).
 
 **Categories:**
 ```mermaid
@@ -119,6 +119,10 @@ graph LR
     A --> AH[Sampler/Simpler - 3]
     A --> AI[Clip RAM Mode - 2]
     A --> AJ[Device Info - 2]
+    A --> AK[Take Lanes - 8]
+    A --> AL[Application Info - 4]
+    A --> AM[Display Values - 2]
+    A --> AN[Additional Props - 10]
 ```
 
 ### 3. Socket Server Thread

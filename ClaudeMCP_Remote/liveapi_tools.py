@@ -3948,6 +3948,481 @@ class LiveAPITools:
             return {"ok": False, "error": str(e)}
 
     # ========================================================================
+    # TAKE LANES SUPPORT (8 tools) - LIVE 12 FEATURE
+    # ========================================================================
+
+    def get_take_lanes(self, track_index):
+        """Get all take lanes for a track (Live 12+)"""
+        try:
+            track = self.song.tracks[track_index]
+
+            if hasattr(track, 'take_lanes'):
+                lanes_info = []
+                for i, lane in enumerate(track.take_lanes):
+                    lane_data = {
+                        "index": i,
+                        "name": str(lane.name) if hasattr(lane, 'name') else "Take " + str(i + 1)
+                    }
+                    lanes_info.append(lane_data)
+
+                return {
+                    "ok": True,
+                    "count": len(lanes_info),
+                    "take_lanes": lanes_info
+                }
+            else:
+                return {"ok": False, "error": "Take lanes not available (Live 12+ only)"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def create_take_lane(self, track_index, name=None):
+        """Create new take lane on a track (Live 12+)"""
+        try:
+            track = self.song.tracks[track_index]
+
+            if hasattr(track, 'create_take_lane'):
+                lane = track.create_take_lane()
+                if name and hasattr(lane, 'name'):
+                    lane.name = str(name)
+
+                return {
+                    "ok": True,
+                    "message": "Take lane created",
+                    "name": str(lane.name) if hasattr(lane, 'name') else "New Take"
+                }
+            else:
+                return {"ok": False, "error": "Take lanes not available (Live 12+ only)"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_take_lane_name(self, track_index, lane_index):
+        """Get take lane name (Live 12+)"""
+        try:
+            track = self.song.tracks[track_index]
+
+            if hasattr(track, 'take_lanes'):
+                lane = track.take_lanes[lane_index]
+                return {
+                    "ok": True,
+                    "name": str(lane.name) if hasattr(lane, 'name') else "Take " + str(lane_index + 1)
+                }
+            else:
+                return {"ok": False, "error": "Take lanes not available (Live 12+ only)"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_take_lane_name(self, track_index, lane_index, name):
+        """Set take lane name (Live 12+)"""
+        try:
+            track = self.song.tracks[track_index]
+
+            if hasattr(track, 'take_lanes'):
+                lane = track.take_lanes[lane_index]
+                if hasattr(lane, 'name'):
+                    lane.name = str(name)
+                    return {
+                        "ok": True,
+                        "name": str(lane.name)
+                    }
+                else:
+                    return {"ok": False, "error": "Lane name not settable"}
+            else:
+                return {"ok": False, "error": "Take lanes not available (Live 12+ only)"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def create_audio_clip_in_lane(self, track_index, lane_index, length=4.0):
+        """Create audio clip in take lane (Live 12+)"""
+        try:
+            track = self.song.tracks[track_index]
+
+            if hasattr(track, 'take_lanes'):
+                lane = track.take_lanes[lane_index]
+                if hasattr(lane, 'create_audio_clip'):
+                    clip = lane.create_audio_clip(float(length))
+                    return {
+                        "ok": True,
+                        "message": "Audio clip created in take lane",
+                        "length": float(length)
+                    }
+                else:
+                    return {"ok": False, "error": "create_audio_clip not available"}
+            else:
+                return {"ok": False, "error": "Take lanes not available (Live 12+ only)"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def create_midi_clip_in_lane(self, track_index, lane_index, length=4.0):
+        """Create MIDI clip in take lane (Live 12+)"""
+        try:
+            track = self.song.tracks[track_index]
+
+            if hasattr(track, 'take_lanes'):
+                lane = track.take_lanes[lane_index]
+                if hasattr(lane, 'create_midi_clip'):
+                    clip = lane.create_midi_clip(float(length))
+                    return {
+                        "ok": True,
+                        "message": "MIDI clip created in take lane",
+                        "length": float(length)
+                    }
+                else:
+                    return {"ok": False, "error": "create_midi_clip not available"}
+            else:
+                return {"ok": False, "error": "Take lanes not available (Live 12+ only)"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_clips_in_take_lane(self, track_index, lane_index):
+        """Get all clips in a take lane (Live 12+)"""
+        try:
+            track = self.song.tracks[track_index]
+
+            if hasattr(track, 'take_lanes'):
+                lane = track.take_lanes[lane_index]
+                clips_info = []
+
+                if hasattr(lane, 'clips'):
+                    for clip in lane.clips:
+                        clip_data = {
+                            "name": str(clip.name),
+                            "length": float(clip.length),
+                            "is_midi": clip.is_midi_clip
+                        }
+                        clips_info.append(clip_data)
+
+                return {
+                    "ok": True,
+                    "count": len(clips_info),
+                    "clips": clips_info
+                }
+            else:
+                return {"ok": False, "error": "Take lanes not available (Live 12+ only)"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def delete_take_lane(self, track_index, lane_index):
+        """Delete a take lane (Live 12+)"""
+        try:
+            track = self.song.tracks[track_index]
+
+            if hasattr(track, 'delete_take_lane'):
+                track.delete_take_lane(lane_index)
+                return {
+                    "ok": True,
+                    "message": "Take lane deleted"
+                }
+            else:
+                return {"ok": False, "error": "Take lanes not available (Live 12+ only)"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # APPLICATION METHODS (4 tools) - LIVE 12
+    # ========================================================================
+
+    def get_build_id(self):
+        """Get Ableton Live build identifier (Live 12+)"""
+        try:
+            app = Live.Application.get_application()
+
+            if hasattr(app, 'get_build_id'):
+                return {
+                    "ok": True,
+                    "build_id": str(app.get_build_id())
+                }
+            else:
+                return {"ok": False, "error": "get_build_id not available (Live 12+ only)"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_variant(self):
+        """Get Ableton Live variant (Suite, Standard, Intro) (Live 12+)"""
+        try:
+            app = Live.Application.get_application()
+
+            if hasattr(app, 'get_variant'):
+                return {
+                    "ok": True,
+                    "variant": str(app.get_variant())
+                }
+            else:
+                return {"ok": False, "error": "get_variant not available (Live 12+ only)"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def show_message_box(self, message, title="Message"):
+        """Show message box dialog to user (Live 12+)"""
+        try:
+            app = Live.Application.get_application()
+
+            if hasattr(app, 'show_message'):
+                result = app.show_message(str(message))
+                return {
+                    "ok": True,
+                    "message": "Message shown",
+                    "button_pressed": int(result) if result is not None else 0
+                }
+            else:
+                return {"ok": False, "error": "show_message not available (Live 12+ only)"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_application_version(self):
+        """Get full Ableton Live version information"""
+        try:
+            app = Live.Application.get_application()
+
+            version_info = {
+                "ok": True,
+                "major_version": int(app.get_major_version()),
+                "minor_version": int(app.get_minor_version()),
+                "bugfix_version": int(app.get_bugfix_version())
+            }
+
+            # Add build_id if available (Live 12+)
+            if hasattr(app, 'get_build_id'):
+                version_info["build_id"] = str(app.get_build_id())
+
+            # Add variant if available (Live 12+)
+            if hasattr(app, 'get_variant'):
+                version_info["variant"] = str(app.get_variant())
+
+            return version_info
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # DEVICE PARAMETER DISPLAY VALUES (2 tools) - LIVE 12
+    # ========================================================================
+
+    def get_device_param_display_value(self, track_index, device_index, param_index):
+        """Get device parameter value as displayed in UI (Live 12+)"""
+        try:
+            track = self.song.tracks[track_index]
+            device = track.devices[device_index]
+            param = device.parameters[param_index]
+
+            if hasattr(param, 'display_value'):
+                return {
+                    "ok": True,
+                    "display_value": str(param.display_value),
+                    "raw_value": float(param.value),
+                    "name": str(param.name)
+                }
+            else:
+                # Fallback to string representation
+                return {
+                    "ok": True,
+                    "display_value": str(param.__str__()),
+                    "raw_value": float(param.value),
+                    "name": str(param.name)
+                }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_all_param_display_values(self, track_index, device_index):
+        """Get all device parameter display values (Live 12+)"""
+        try:
+            track = self.song.tracks[track_index]
+            device = track.devices[device_index]
+
+            params_info = []
+            for i, param in enumerate(device.parameters):
+                param_data = {
+                    "index": i,
+                    "name": str(param.name),
+                    "raw_value": float(param.value)
+                }
+
+                if hasattr(param, 'display_value'):
+                    param_data["display_value"] = str(param.display_value)
+                else:
+                    param_data["display_value"] = str(param.__str__())
+
+                params_info.append(param_data)
+
+            return {
+                "ok": True,
+                "device_name": str(device.name),
+                "count": len(params_info),
+                "parameters": params_info
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # MISSING TRACK/CLIP/SCENE PROPERTIES (10 tools)
+    # ========================================================================
+
+    def get_clip_start_time(self, track_index, clip_index):
+        """Get clip start time (observable in Live 12+)"""
+        try:
+            track = self.song.tracks[track_index]
+            clip_slot = track.clip_slots[clip_index]
+
+            if not clip_slot.has_clip:
+                return {"ok": False, "error": "No clip in slot"}
+
+            clip = clip_slot.clip
+
+            if hasattr(clip, 'start_time'):
+                return {
+                    "ok": True,
+                    "start_time": float(clip.start_time)
+                }
+            else:
+                return {"ok": False, "error": "start_time not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_clip_start_time(self, track_index, clip_index, start_time):
+        """Set clip start time"""
+        try:
+            track = self.song.tracks[track_index]
+            clip_slot = track.clip_slots[clip_index]
+
+            if not clip_slot.has_clip:
+                return {"ok": False, "error": "No clip in slot"}
+
+            clip = clip_slot.clip
+
+            if hasattr(clip, 'start_time'):
+                clip.start_time = float(start_time)
+                return {
+                    "ok": True,
+                    "start_time": float(clip.start_time)
+                }
+            else:
+                return {"ok": False, "error": "start_time not settable"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_track_is_foldable(self, track_index):
+        """Check if track can be folded (group tracks)"""
+        try:
+            track = self.song.tracks[track_index]
+
+            if hasattr(track, 'is_foldable'):
+                return {
+                    "ok": True,
+                    "is_foldable": bool(track.is_foldable)
+                }
+            else:
+                return {"ok": False, "error": "is_foldable not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_track_is_frozen(self, track_index):
+        """Check if track is currently frozen"""
+        try:
+            track = self.song.tracks[track_index]
+
+            if hasattr(track, 'is_frozen'):
+                return {
+                    "ok": True,
+                    "is_frozen": bool(track.is_frozen)
+                }
+            else:
+                return {"ok": False, "error": "is_frozen not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_scene_is_empty(self, scene_index):
+        """Check if scene has no clips"""
+        try:
+            scene = self.song.scenes[scene_index]
+
+            if hasattr(scene, 'is_empty'):
+                return {
+                    "ok": True,
+                    "is_empty": bool(scene.is_empty)
+                }
+            else:
+                # Manually check if all clip slots are empty
+                is_empty = True
+                for track in self.song.tracks:
+                    if track.clip_slots[scene_index].has_clip:
+                        is_empty = False
+                        break
+
+                return {
+                    "ok": True,
+                    "is_empty": is_empty
+                }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_scene_tempo(self, scene_index):
+        """Get scene tempo override (if set)"""
+        try:
+            scene = self.song.scenes[scene_index]
+
+            if hasattr(scene, 'tempo'):
+                return {
+                    "ok": True,
+                    "tempo": float(scene.tempo) if scene.tempo else None,
+                    "has_tempo": bool(scene.tempo)
+                }
+            else:
+                return {"ok": False, "error": "Scene tempo not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_arrangement_overdub(self):
+        """Get arrangement overdub state"""
+        try:
+            if hasattr(self.song, 'arrangement_overdub'):
+                return {
+                    "ok": True,
+                    "arrangement_overdub": bool(self.song.arrangement_overdub)
+                }
+            else:
+                return {"ok": False, "error": "arrangement_overdub not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_record_mode(self, mode):
+        """Set session/arrangement record mode (0=session, 1=arrangement)"""
+        try:
+            if hasattr(self.song, 'record_mode'):
+                self.song.record_mode = int(mode)
+                return {
+                    "ok": True,
+                    "record_mode": int(self.song.record_mode)
+                }
+            else:
+                return {"ok": False, "error": "record_mode not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_signature_numerator(self):
+        """Get global time signature numerator"""
+        try:
+            if hasattr(self.song, 'signature_numerator'):
+                return {
+                    "ok": True,
+                    "signature_numerator": int(self.song.signature_numerator)
+                }
+            else:
+                return {"ok": False, "error": "signature_numerator not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_signature_denominator(self):
+        """Get global time signature denominator"""
+        try:
+            if hasattr(self.song, 'signature_denominator'):
+                return {
+                    "ok": True,
+                    "signature_denominator": int(self.song.signature_denominator)
+                }
+            else:
+                return {"ok": False, "error": "signature_denominator not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
     # UTILITY
     # ========================================================================
 
@@ -4068,5 +4543,16 @@ class LiveAPITools:
             # Clip RAM Mode (2 tools)
             "get_clip_ram_mode", "set_clip_ram_mode",
             # Device Utilities (2 tools)
-            "get_device_class_name", "get_device_type"
+            "get_device_class_name", "get_device_type",
+            # Take Lanes Support (8 tools) - Live 12
+            "get_take_lanes", "create_take_lane", "get_take_lane_name", "set_take_lane_name",
+            "create_audio_clip_in_lane", "create_midi_clip_in_lane", "get_clips_in_take_lane", "delete_take_lane",
+            # Application Methods (4 tools) - Live 12
+            "get_build_id", "get_variant", "show_message_box", "get_application_version",
+            # Device Parameter Display Values (2 tools) - Live 12
+            "get_device_param_display_value", "get_all_param_display_values",
+            # Missing Track/Clip/Scene Properties (10 tools)
+            "get_clip_start_time", "set_clip_start_time", "get_track_is_foldable", "get_track_is_frozen",
+            "get_scene_is_empty", "get_scene_tempo", "get_arrangement_overdub", "set_record_mode",
+            "get_signature_numerator", "get_signature_denominator"
         ]

@@ -1,6 +1,6 @@
 # ClaudeMCP Remote Script for Ableton Live
 
-A comprehensive Python Remote Script for Ableton Live that exposes **196 LiveAPI tools** via a simple TCP socket interface. Control every aspect of your Ableton Live session programmatically - from playback and recording to tracks, clips, devices, MIDI notes, and Max for Live / CV Tools devices.
+A comprehensive Python Remote Script for Ableton Live that exposes **220 LiveAPI tools** via a simple TCP socket interface. Control every aspect of your Ableton Live session programmatically - from playback and recording to tracks, clips, devices, MIDI notes, and Max for Live / CV Tools devices.
 
 [![CI](https://github.com/Ziforge/ableton-liveapi-tools/workflows/CI/badge.svg)](https://github.com/Ziforge/ableton-liveapi-tools/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -10,7 +10,7 @@ A comprehensive Python Remote Script for Ableton Live that exposes **196 LiveAPI
 
 ## Features
 
-- **196 LiveAPI Tools** - Complete control over Ableton Live including Max for Live & CV Tools
+- **220 LiveAPI Tools** - Complete control over Ableton Live including Max for Live & CV Tools
 - **Thread-Safe Architecture** - Queue-based design for reliable communication
 - **Simple TCP Interface** - Send JSON commands, receive JSON responses
 - **Real-Time Control** - Low latency for live performance
@@ -63,8 +63,12 @@ A comprehensive Python Remote Script for Ableton Live that exposes **196 LiveAPI
 | **Sampler/Simpler** | 3 | Sample length and playback mode |
 | **Clip RAM Mode** | 2 | RAM vs disk streaming |
 | **Device Info** | 2 | Device class name and type |
+| **Take Lanes** | 8 | Create/manage take lanes (Live 12+) |
+| **Application Info** | 4 | Version, variant, build ID, message boxes |
+| **Display Values** | 2 | Get parameter values as shown in UI |
+| **Additional Properties** | 10 | Clip start time, track/scene states, signatures |
 
-**Total: 196 Tools**
+**Total: 220 Tools**
 
 ## Quick Start
 
@@ -142,7 +146,7 @@ send_command('launch_clip', track_index=track_index, scene_index=0)
 ## Documentation
 
 - **[Installation Guide](docs/INSTALLATION.md)** - Detailed installation instructions
-- **[API Reference](docs/API_REFERENCE.md)** - Complete list of all 196 tools
+- **[API Reference](docs/API_REFERENCE.md)** - Complete list of all 220 tools
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 
 ## Examples
@@ -152,7 +156,7 @@ Check the `examples/` directory for:
 - **`test_connection.py`** - Verify the Remote Script is working
 - **`basic_usage.py`** - Simple examples of common operations
 - **`creative_workflow.py`** - Generate music programmatically
-- **`test_all_tools.py`** - Comprehensive test of all 196 tools
+- **`test_all_tools.py`** - Comprehensive test of all 220 tools
 
 ## Architecture
 

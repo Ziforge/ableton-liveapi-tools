@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive test of all 196 LiveAPI tools in ClaudeMCP Python backend
+Comprehensive test of all 220 LiveAPI tools in ClaudeMCP Python backend
 Tests organized by category with proper timeout handling
 """
 
@@ -39,7 +39,7 @@ def send_command(action, timeout=10, **params):
 
 def main():
     print("=" * 80)
-    print("ClaudeMCP - Comprehensive 196 LiveAPI Tools Test")
+    print("ClaudeMCP - Comprehensive 220 LiveAPI Tools Test")
     print("=" * 80)
     print()
 
@@ -255,7 +255,7 @@ def main():
     print("  • Device management (add effects, list devices)")
     print("  • Scene control (create, launch)")
     print()
-    print("📦 Total tools available: 196")
+    print("📦 Total tools available: 220")
     print()
     print("Categories:")
     print("  • Session Control:    10 tools")

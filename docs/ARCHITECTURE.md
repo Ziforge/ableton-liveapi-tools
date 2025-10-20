@@ -79,34 +79,32 @@ stateDiagram-v2
 
 ### 2. LiveAPITools Class
 
-Encapsulates all 125 LiveAPI operations (including Max for Live and CV Tools support).
+Encapsulates all 159 LiveAPI operations (including Max for Live, CV Tools, master/return tracks, follow actions, and more).
 
 **Categories:**
 ```mermaid
 graph LR
-    A[LiveAPITools] --> B[Session Control]
-    A --> C[Track Management]
-    A --> D[Clip Operations]
-    A --> E[MIDI Editing]
-    A --> F[Device Control]
-    A --> G[Scene Management]
-    A --> H[Automation]
-    A --> I[Routing]
-    A --> J[Browser]
-    A --> K[Transport]
-    A --> L[Max for Live]
-
-    B --> B1[14 tools]
-    C --> C1[13 tools]
-    D --> D1[18 tools]
-    E --> E1[7 tools]
-    F --> F1[12 tools]
-    G --> G1[6 tools]
-    H --> H1[6 tools]
-    I --> I1[8 tools]
-    J --> J1[4 tools]
-    K --> K1[8 tools]
-    L --> L1[5 tools]
+    A[LiveAPITools] --> B[Session Control - 14]
+    A --> C[Track Management - 13]
+    A --> D[Clip Operations - 18]
+    A --> E[MIDI Editing - 7]
+    A --> F[Device Control - 12]
+    A --> G[Scene Management - 6]
+    A --> H[Automation - 6]
+    A --> I[Routing - 8]
+    A --> J[Browser - 4]
+    A --> K[Transport - 8]
+    A --> L[Max for Live - 5]
+    A --> M[Master Track - 4]
+    A --> N[Return Tracks - 3]
+    A --> O[Audio Clips - 5]
+    A --> P[Follow Actions - 3]
+    A --> Q[Crossfader - 3]
+    A --> R[Track Groups - 4]
+    A --> S[View/Nav - 4]
+    A --> T[Colors - 2]
+    A --> U[Groove Pool - 2]
+    A --> V[Racks/Chains - 4]
 ```
 
 ### 3. Socket Server Thread

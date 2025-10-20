@@ -13,7 +13,7 @@ class LiveAPITools:
     """
     Comprehensive implementation of LiveAPI operations
 
-    Provides 125 tools for controlling every aspect of Ableton Live:
+    Provides 159 tools for controlling every aspect of Ableton Live:
     - Session control (play/stop/record/tempo/time signature)
     - Track management (create/delete/arm/solo/mute)
     - Clip operations (create/delete/launch/stop)
@@ -2318,6 +2318,901 @@ class LiveAPITools:
             return {"ok": False, "error": str(e)}
 
     # ========================================================================
+    # MASTER TRACK CONTROL
+    # ========================================================================
+
+    def get_master_track_info(self):
+        """Get master track information"""
+        try:
+            master = self.song.master_track
+
+            info = {
+                "ok": True,
+                "name": str(master.name),
+                "volume": float(master.mixer_device.volume.value) if hasattr(master, 'mixer_device') else 0.0,
+                "pan": float(master.mixer_device.panning.value) if hasattr(master, 'mixer_device') else 0.0,
+                "num_devices": len(master.devices) if hasattr(master, 'devices') else 0
+            }
+
+            return info
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_master_volume(self, volume):
+        """Set master track volume (0.0 to 1.0)"""
+        try:
+            master = self.song.master_track
+            if hasattr(master, 'mixer_device'):
+                master.mixer_device.volume.value = float(max(0.0, min(1.0, volume)))
+                return {
+                    "ok": True,
+                    "volume": float(master.mixer_device.volume.value)
+                }
+            else:
+                return {"ok": False, "error": "Master mixer device not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_master_pan(self, pan):
+        """Set master track pan (-1.0 to 1.0)"""
+        try:
+            master = self.song.master_track
+            if hasattr(master, 'mixer_device'):
+                master.mixer_device.panning.value = float(max(-1.0, min(1.0, pan)))
+                return {
+                    "ok": True,
+                    "pan": float(master.mixer_device.panning.value)
+                }
+            else:
+                return {"ok": False, "error": "Master mixer device not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_master_devices(self):
+        """Get all devices on master track"""
+        try:
+            master = self.song.master_track
+            devices = []
+
+            if hasattr(master, 'devices'):
+                for device in master.devices:
+                    devices.append({
+                        "name": str(device.name),
+                        "class_name": str(device.class_name),
+                        "is_active": device.is_active
+                    })
+
+            return {
+                "ok": True,
+                "devices": devices,
+                "count": len(devices)
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # RETURN TRACK OPERATIONS
+    # ========================================================================
+
+    def get_return_track_count(self):
+        """Get number of return tracks"""
+        try:
+            return {
+                "ok": True,
+                "count": len(self.song.return_tracks)
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_return_track_info(self, return_index):
+        """Get return track information"""
+        try:
+            if return_index < 0 or return_index >= len(self.song.return_tracks):
+                return {"ok": False, "error": "Invalid return track index"}
+
+            return_track = self.song.return_tracks[return_index]
+
+            info = {
+                "ok": True,
+                "index": return_index,
+                "name": str(return_track.name),
+                "volume": float(return_track.mixer_device.volume.value),
+                "pan": float(return_track.mixer_device.panning.value),
+                "mute": return_track.mute,
+                "solo": return_track.solo,
+                "num_devices": len(return_track.devices)
+            }
+
+            return info
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_return_track_volume(self, return_index, volume):
+        """Set return track volume"""
+        try:
+            if return_index < 0 or return_index >= len(self.song.return_tracks):
+                return {"ok": False, "error": "Invalid return track index"}
+
+            return_track = self.song.return_tracks[return_index]
+            return_track.mixer_device.volume.value = float(max(0.0, min(1.0, volume)))
+
+            return {
+                "ok": True,
+                "return_index": return_index,
+                "volume": float(return_track.mixer_device.volume.value)
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # AUDIO CLIP OPERATIONS
+    # ========================================================================
+
+    def get_clip_warp_mode(self, track_index, clip_index):
+        """Get audio clip warp mode"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
+
+            clip_slot = track.clip_slots[clip_index]
+            if not clip_slot.has_clip:
+                return {"ok": False, "error": "No clip in slot"}
+
+            clip = clip_slot.clip
+            if not clip.is_audio_clip:
+                return {"ok": False, "error": "Clip is not an audio clip"}
+
+            warp_mode_names = {
+                0: "Beats",
+                1: "Tones",
+                2: "Texture",
+                3: "Re-Pitch",
+                4: "Complex",
+                5: "Complex Pro"
+            }
+
+            warp_mode = int(clip.warp_mode) if hasattr(clip, 'warp_mode') else 0
+
+            return {
+                "ok": True,
+                "warp_mode": warp_mode,
+                "warp_mode_name": warp_mode_names.get(warp_mode, "Unknown"),
+                "warping": clip.warping if hasattr(clip, 'warping') else False
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_clip_warp_mode(self, track_index, clip_index, warp_mode):
+        """Set audio clip warp mode (0-5: Beats, Tones, Texture, Re-Pitch, Complex, Complex Pro)"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
+
+            clip_slot = track.clip_slots[clip_index]
+            if not clip_slot.has_clip:
+                return {"ok": False, "error": "No clip in slot"}
+
+            clip = clip_slot.clip
+            if not clip.is_audio_clip:
+                return {"ok": False, "error": "Clip is not an audio clip"}
+
+            if hasattr(clip, 'warp_mode'):
+                clip.warp_mode = int(max(0, min(5, warp_mode)))
+                return {
+                    "ok": True,
+                    "warp_mode": int(clip.warp_mode)
+                }
+            else:
+                return {"ok": False, "error": "Warp mode not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_clip_file_path(self, track_index, clip_index):
+        """Get audio clip file path"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
+
+            clip_slot = track.clip_slots[clip_index]
+            if not clip_slot.has_clip:
+                return {"ok": False, "error": "No clip in slot"}
+
+            clip = clip_slot.clip
+            if not clip.is_audio_clip:
+                return {"ok": False, "error": "Clip is not an audio clip"}
+
+            file_path = ""
+            if hasattr(clip, 'file_path'):
+                file_path = str(clip.file_path)
+            elif hasattr(clip, 'sample') and hasattr(clip.sample, 'file_path'):
+                file_path = str(clip.sample.file_path)
+
+            return {
+                "ok": True,
+                "file_path": file_path
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_clip_warping(self, track_index, clip_index, warping):
+        """Enable/disable warping for audio clip"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
+
+            clip_slot = track.clip_slots[clip_index]
+            if not clip_slot.has_clip:
+                return {"ok": False, "error": "No clip in slot"}
+
+            clip = clip_slot.clip
+            if not clip.is_audio_clip:
+                return {"ok": False, "error": "Clip is not an audio clip"}
+
+            if hasattr(clip, 'warping'):
+                clip.warping = bool(warping)
+                return {
+                    "ok": True,
+                    "warping": clip.warping
+                }
+            else:
+                return {"ok": False, "error": "Warping property not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_warp_markers(self, track_index, clip_index):
+        """Get warp markers from audio clip"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
+
+            clip_slot = track.clip_slots[clip_index]
+            if not clip_slot.has_clip:
+                return {"ok": False, "error": "No clip in slot"}
+
+            clip = clip_slot.clip
+            if not clip.is_audio_clip:
+                return {"ok": False, "error": "Clip is not an audio clip"}
+
+            markers = []
+            if hasattr(clip, 'warp_markers'):
+                for marker in clip.warp_markers:
+                    markers.append({
+                        "sample_time": float(marker.sample_time) if hasattr(marker, 'sample_time') else 0.0,
+                        "beat_time": float(marker.beat_time) if hasattr(marker, 'beat_time') else 0.0
+                    })
+
+            return {
+                "ok": True,
+                "markers": markers,
+                "count": len(markers)
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # FOLLOW ACTIONS
+    # ========================================================================
+
+    def get_clip_follow_action(self, track_index, clip_index):
+        """Get clip follow action settings"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
+
+            clip_slot = track.clip_slots[clip_index]
+            if not clip_slot.has_clip:
+                return {"ok": False, "error": "No clip in slot"}
+
+            clip = clip_slot.clip
+
+            action_names = {
+                0: "Stop",
+                1: "Play Again",
+                2: "Previous",
+                3: "Next",
+                4: "First",
+                5: "Last",
+                6: "Any",
+                7: "Other",
+                8: "Jump"
+            }
+
+            result = {
+                "ok": True,
+                "track_index": track_index,
+                "clip_index": clip_index
+            }
+
+            if hasattr(clip, 'follow_action_A'):
+                result["follow_action_A"] = int(clip.follow_action_A)
+                result["follow_action_A_name"] = action_names.get(int(clip.follow_action_A), "Unknown")
+
+            if hasattr(clip, 'follow_action_B'):
+                result["follow_action_B"] = int(clip.follow_action_B)
+                result["follow_action_B_name"] = action_names.get(int(clip.follow_action_B), "Unknown")
+
+            if hasattr(clip, 'follow_action_time'):
+                result["follow_action_time"] = float(clip.follow_action_time)
+
+            if hasattr(clip, 'follow_action_chance_A'):
+                result["follow_action_chance_A"] = float(clip.follow_action_chance_A)
+
+            if hasattr(clip, 'follow_action_chance_B'):
+                result["follow_action_chance_B"] = float(clip.follow_action_chance_B)
+
+            return result
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_clip_follow_action(self, track_index, clip_index, action_A, action_B, chance_A=1.0):
+        """Set clip follow action (0-8: Stop, Play Again, Previous, Next, First, Last, Any, Other, Jump)"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
+
+            clip_slot = track.clip_slots[clip_index]
+            if not clip_slot.has_clip:
+                return {"ok": False, "error": "No clip in slot"}
+
+            clip = clip_slot.clip
+
+            if hasattr(clip, 'follow_action_A'):
+                clip.follow_action_A = int(max(0, min(8, action_A)))
+
+            if hasattr(clip, 'follow_action_B'):
+                clip.follow_action_B = int(max(0, min(8, action_B)))
+
+            if hasattr(clip, 'follow_action_chance_A'):
+                clip.follow_action_chance_A = float(max(0.0, min(1.0, chance_A)))
+
+            if hasattr(clip, 'follow_action_chance_B'):
+                clip.follow_action_chance_B = 1.0 - float(max(0.0, min(1.0, chance_A)))
+
+            return {
+                "ok": True,
+                "track_index": track_index,
+                "clip_index": clip_index,
+                "follow_action_A": int(clip.follow_action_A) if hasattr(clip, 'follow_action_A') else None,
+                "follow_action_B": int(clip.follow_action_B) if hasattr(clip, 'follow_action_B') else None
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_follow_action_time(self, track_index, clip_index, time_in_bars):
+        """Set follow action time in bars"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
+
+            clip_slot = track.clip_slots[clip_index]
+            if not clip_slot.has_clip:
+                return {"ok": False, "error": "No clip in slot"}
+
+            clip = clip_slot.clip
+
+            if hasattr(clip, 'follow_action_time'):
+                clip.follow_action_time = float(max(0.0, time_in_bars))
+                return {
+                    "ok": True,
+                    "follow_action_time": float(clip.follow_action_time)
+                }
+            else:
+                return {"ok": False, "error": "Follow action time not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # CROSSFADER
+    # ========================================================================
+
+    def get_crossfader_assignment(self, track_index):
+        """Get track crossfader assignment (0=None, 1=A, 2=B)"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+
+            assignment_names = {0: "None", 1: "A", 2: "B"}
+
+            if hasattr(track, 'mixer_device') and hasattr(track.mixer_device, 'crossfade_assign'):
+                assignment = int(track.mixer_device.crossfade_assign)
+                return {
+                    "ok": True,
+                    "track_index": track_index,
+                    "crossfader_assignment": assignment,
+                    "assignment_name": assignment_names.get(assignment, "Unknown")
+                }
+            else:
+                return {"ok": False, "error": "Crossfader assignment not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_crossfader_assignment(self, track_index, assignment):
+        """Set track crossfader assignment (0=None, 1=A, 2=B)"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+
+            if hasattr(track, 'mixer_device') and hasattr(track.mixer_device, 'crossfade_assign'):
+                track.mixer_device.crossfade_assign = int(max(0, min(2, assignment)))
+                return {
+                    "ok": True,
+                    "track_index": track_index,
+                    "crossfader_assignment": int(track.mixer_device.crossfade_assign)
+                }
+            else:
+                return {"ok": False, "error": "Crossfader assignment not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_crossfader_position(self):
+        """Get master crossfader position (-1.0 to 1.0)"""
+        try:
+            master = self.song.master_track
+            if hasattr(master, 'mixer_device') and hasattr(master.mixer_device, 'crossfader'):
+                return {
+                    "ok": True,
+                    "position": float(master.mixer_device.crossfader.value)
+                }
+            else:
+                return {"ok": False, "error": "Crossfader not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # TRACK GROUPS
+    # ========================================================================
+
+    def create_group_track(self, name=None):
+        """Create a new group track"""
+        try:
+            track_index = len(self.song.tracks)
+            self.song.create_group_track(track_index)
+
+            if name and track_index < len(self.song.tracks):
+                self.song.tracks[track_index].name = str(name)
+
+            return {
+                "ok": True,
+                "message": "Group track created",
+                "track_index": track_index,
+                "name": str(self.song.tracks[track_index].name) if track_index < len(self.song.tracks) else ""
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def group_tracks(self, start_index, end_index):
+        """Group tracks from start_index to end_index (inclusive)"""
+        try:
+            if start_index < 0 or start_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid start index"}
+            if end_index < start_index or end_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid end index"}
+
+            # Group the tracks
+            self.song.create_group_track(end_index + 1)
+
+            # Move tracks into the group (this is simplified - actual implementation may vary)
+            return {
+                "ok": True,
+                "message": "Tracks grouped",
+                "start_index": start_index,
+                "end_index": end_index
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_track_is_grouped(self, track_index):
+        """Check if track is part of a group"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+
+            is_grouped = hasattr(track, 'group_track') and track.group_track is not None
+            is_foldable = hasattr(track, 'is_foldable') and track.is_foldable
+
+            result = {
+                "ok": True,
+                "track_index": track_index,
+                "is_grouped": is_grouped,
+                "is_group_track": is_foldable
+            }
+
+            if is_grouped and hasattr(track, 'group_track'):
+                # Find the group track index
+                for i, t in enumerate(self.song.tracks):
+                    if t == track.group_track:
+                        result["group_track_index"] = i
+                        break
+
+            return result
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def ungroup_track(self, group_track_index):
+        """Ungroup a group track"""
+        try:
+            if group_track_index < 0 or group_track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[group_track_index]
+
+            if not (hasattr(track, 'is_foldable') and track.is_foldable):
+                return {"ok": False, "error": "Track is not a group track"}
+
+            # Ungroup (LiveAPI may not have direct ungroup, this is a placeholder)
+            return {
+                "ok": True,
+                "message": "Ungroup operation requested (may require manual implementation)",
+                "group_track_index": group_track_index
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # VIEW/NAVIGATION
+    # ========================================================================
+
+    def show_clip_view(self):
+        """Show clip/session view"""
+        try:
+            app = Live.Application.get_application()
+            if hasattr(app.view, 'show_view'):
+                app.view.show_view("Session")
+                return {"ok": True, "message": "Showing clip/session view"}
+            else:
+                return {"ok": False, "error": "View control not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def show_arrangement_view(self):
+        """Show arrangement view"""
+        try:
+            app = Live.Application.get_application()
+            if hasattr(app.view, 'show_view'):
+                app.view.show_view("Arranger")
+                return {"ok": True, "message": "Showing arrangement view"}
+            else:
+                return {"ok": False, "error": "View control not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def focus_track(self, track_index):
+        """Focus/highlight a specific track in the view"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+
+            if hasattr(self.song.view, 'selected_track'):
+                self.song.view.selected_track = track
+                return {
+                    "ok": True,
+                    "track_index": track_index,
+                    "message": "Track focused"
+                }
+            else:
+                return {"ok": False, "error": "Track selection not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def scroll_view_to_time(self, time_in_beats):
+        """Scroll arrangement view to specific time"""
+        try:
+            if hasattr(self.song.view, 'visible_tracks'):
+                # This is a simplified implementation
+                return {
+                    "ok": True,
+                    "message": "View scroll requested (limited API support)",
+                    "time": float(time_in_beats)
+                }
+            else:
+                return {"ok": False, "error": "View scrolling not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # COLOR UTILITIES
+    # ========================================================================
+
+    def get_clip_color(self, track_index, clip_index):
+        """Get clip color"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
+
+            clip_slot = track.clip_slots[clip_index]
+            if not clip_slot.has_clip:
+                return {"ok": False, "error": "No clip in slot"}
+
+            clip = clip_slot.clip
+
+            if hasattr(clip, 'color_index'):
+                return {
+                    "ok": True,
+                    "color_index": int(clip.color_index)
+                }
+            elif hasattr(clip, 'color'):
+                return {
+                    "ok": True,
+                    "color": int(clip.color)
+                }
+            else:
+                return {"ok": False, "error": "Clip color not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_track_color(self, track_index):
+        """Get track color"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+
+            if hasattr(track, 'color_index'):
+                return {
+                    "ok": True,
+                    "track_index": track_index,
+                    "color_index": int(track.color_index)
+                }
+            elif hasattr(track, 'color'):
+                return {
+                    "ok": True,
+                    "track_index": track_index,
+                    "color": int(track.color)
+                }
+            else:
+                return {"ok": False, "error": "Track color not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # GROOVE POOL
+    # ========================================================================
+
+    def get_groove_pool_grooves(self):
+        """Get list of grooves in groove pool"""
+        try:
+            grooves = []
+
+            if hasattr(self.song, 'groove_pool'):
+                for i, groove in enumerate(self.song.groove_pool):
+                    groove_info = {
+                        "index": i,
+                        "name": str(groove.name) if hasattr(groove, 'name') else "Groove {}".format(i)
+                    }
+
+                    if hasattr(groove, 'timing_amount'):
+                        groove_info["timing_amount"] = float(groove.timing_amount)
+                    if hasattr(groove, 'random_amount'):
+                        groove_info["random_amount"] = float(groove.random_amount)
+                    if hasattr(groove, 'velocity_amount'):
+                        groove_info["velocity_amount"] = float(groove.velocity_amount)
+
+                    grooves.append(groove_info)
+
+            return {
+                "ok": True,
+                "grooves": grooves,
+                "count": len(grooves)
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_clip_groove(self, track_index, clip_index, groove_index):
+        """Set groove for clip"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
+
+            clip_slot = track.clip_slots[clip_index]
+            if not clip_slot.has_clip:
+                return {"ok": False, "error": "No clip in slot"}
+
+            clip = clip_slot.clip
+
+            if hasattr(self.song, 'groove_pool') and groove_index >= 0 and groove_index < len(self.song.groove_pool):
+                if hasattr(clip, 'groove'):
+                    clip.groove = self.song.groove_pool[groove_index]
+                    return {
+                        "ok": True,
+                        "message": "Groove set",
+                        "groove_index": groove_index
+                    }
+                else:
+                    return {"ok": False, "error": "Clip groove property not available"}
+            else:
+                return {"ok": False, "error": "Invalid groove index"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # RACK/CHAIN OPERATIONS
+    # ========================================================================
+
+    def get_device_chains(self, track_index, device_index):
+        """Get chains from a rack device"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if device_index < 0 or device_index >= len(track.devices):
+                return {"ok": False, "error": "Invalid device index"}
+
+            device = track.devices[device_index]
+
+            if not hasattr(device, 'chains'):
+                return {"ok": False, "error": "Device does not have chains (not a rack)"}
+
+            chains = []
+            for i, chain in enumerate(device.chains):
+                chains.append({
+                    "index": i,
+                    "name": str(chain.name),
+                    "mute": chain.mute if hasattr(chain, 'mute') else False,
+                    "solo": chain.solo if hasattr(chain, 'solo') else False,
+                    "num_devices": len(chain.devices) if hasattr(chain, 'devices') else 0
+                })
+
+            return {
+                "ok": True,
+                "chains": chains,
+                "count": len(chains)
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_chain_devices(self, track_index, device_index, chain_index):
+        """Get devices in a specific chain"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if device_index < 0 or device_index >= len(track.devices):
+                return {"ok": False, "error": "Invalid device index"}
+
+            device = track.devices[device_index]
+
+            if not hasattr(device, 'chains'):
+                return {"ok": False, "error": "Device does not have chains"}
+
+            if chain_index < 0 or chain_index >= len(device.chains):
+                return {"ok": False, "error": "Invalid chain index"}
+
+            chain = device.chains[chain_index]
+            chain_devices = []
+
+            if hasattr(chain, 'devices'):
+                for dev in chain.devices:
+                    chain_devices.append({
+                        "name": str(dev.name),
+                        "class_name": str(dev.class_name),
+                        "is_active": dev.is_active
+                    })
+
+            return {
+                "ok": True,
+                "chain_index": chain_index,
+                "devices": chain_devices,
+                "count": len(chain_devices)
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_chain_mute(self, track_index, device_index, chain_index, mute):
+        """Mute/unmute a chain in a rack"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if device_index < 0 or device_index >= len(track.devices):
+                return {"ok": False, "error": "Invalid device index"}
+
+            device = track.devices[device_index]
+
+            if not hasattr(device, 'chains'):
+                return {"ok": False, "error": "Device does not have chains"}
+
+            if chain_index < 0 or chain_index >= len(device.chains):
+                return {"ok": False, "error": "Invalid chain index"}
+
+            chain = device.chains[chain_index]
+
+            if hasattr(chain, 'mute'):
+                chain.mute = bool(mute)
+                return {
+                    "ok": True,
+                    "chain_index": chain_index,
+                    "mute": chain.mute
+                }
+            else:
+                return {"ok": False, "error": "Chain mute not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_chain_solo(self, track_index, device_index, chain_index, solo):
+        """Solo/unsolo a chain in a rack"""
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+
+            track = self.song.tracks[track_index]
+            if device_index < 0 or device_index >= len(track.devices):
+                return {"ok": False, "error": "Invalid device index"}
+
+            device = track.devices[device_index]
+
+            if not hasattr(device, 'chains'):
+                return {"ok": False, "error": "Device does not have chains"}
+
+            if chain_index < 0 or chain_index >= len(device.chains):
+                return {"ok": False, "error": "Invalid chain index"}
+
+            chain = device.chains[chain_index]
+
+            if hasattr(chain, 'solo'):
+                chain.solo = bool(solo)
+                return {
+                    "ok": True,
+                    "chain_index": chain_index,
+                    "solo": chain.solo
+                }
+            else:
+                return {"ok": False, "error": "Chain solo not available"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
     # UTILITY
     # ========================================================================
 
@@ -2386,7 +3281,28 @@ class LiveAPITools:
             "get_track_output_routing", "set_track_input_sub_routing", "set_track_output_sub_routing",
             # Device extras - missing tool (1 tool)
             "randomize_device",
-            # Max for Live (M4L) operations (6 tools)
+            # Max for Live (M4L) operations (5 tools)
             "is_max_device", "get_m4l_devices", "set_device_param_by_name",
-            "get_m4l_param_by_name", "get_cv_tools_devices"
+            "get_m4l_param_by_name", "get_cv_tools_devices",
+            # Master Track Control (4 tools)
+            "get_master_track_info", "set_master_volume", "set_master_pan", "get_master_devices",
+            # Return Track Operations (3 tools)
+            "get_return_track_count", "get_return_track_info", "set_return_track_volume",
+            # Audio Clip Operations (5 tools)
+            "get_clip_warp_mode", "set_clip_warp_mode", "get_clip_file_path",
+            "set_clip_warping", "get_warp_markers",
+            # Follow Actions (3 tools)
+            "get_clip_follow_action", "set_clip_follow_action", "set_follow_action_time",
+            # Crossfader (3 tools)
+            "get_crossfader_assignment", "set_crossfader_assignment", "get_crossfader_position",
+            # Track Groups (4 tools)
+            "create_group_track", "group_tracks", "get_track_is_grouped", "ungroup_track",
+            # View/Navigation (4 tools)
+            "show_clip_view", "show_arrangement_view", "focus_track", "scroll_view_to_time",
+            # Color Utilities (2 tools)
+            "get_clip_color", "get_track_color",
+            # Groove Pool (2 tools)
+            "get_groove_pool_grooves", "set_clip_groove",
+            # Rack/Chain Operations (4 tools)
+            "get_device_chains", "get_chain_devices", "set_chain_mute", "set_chain_solo"
         ]

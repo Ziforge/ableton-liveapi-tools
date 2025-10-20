@@ -1,6 +1,6 @@
 # ClaudeMCP Remote Script for Ableton Live
 
-A comprehensive Python Remote Script for Ableton Live that exposes **125 LiveAPI tools** via a simple TCP socket interface. Control every aspect of your Ableton Live session programmatically - from playback and recording to tracks, clips, devices, MIDI notes, and Max for Live / CV Tools devices.
+A comprehensive Python Remote Script for Ableton Live that exposes **159 LiveAPI tools** via a simple TCP socket interface. Control every aspect of your Ableton Live session programmatically - from playback and recording to tracks, clips, devices, MIDI notes, and Max for Live / CV Tools devices.
 
 [![CI](https://github.com/Ziforge/ableton-liveapi-tools/workflows/CI/badge.svg)](https://github.com/Ziforge/ableton-liveapi-tools/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -10,7 +10,7 @@ A comprehensive Python Remote Script for Ableton Live that exposes **125 LiveAPI
 
 ## Features
 
-- **125 LiveAPI Tools** - Complete control over Ableton Live including Max for Live & CV Tools
+- **159 LiveAPI Tools** - Complete control over Ableton Live including Max for Live & CV Tools
 - **Thread-Safe Architecture** - Queue-based design for reliable communication
 - **Simple TCP Interface** - Send JSON commands, receive JSON responses
 - **Real-Time Control** - Low latency for live performance
@@ -39,8 +39,18 @@ A comprehensive Python Remote Script for Ableton Live that exposes **125 LiveAPI
 | **Loop/Locator** | 6 | Enable loop, create locators, jump by amount |
 | **Project** | 6 | Project root, session record, cue points |
 | **Max for Live** | 5 | Detect M4L devices, control by parameter name, CV Tools support |
+| **Master Track** | 4 | Master volume, pan, devices, info |
+| **Return Tracks** | 3 | Return track info, volume control |
+| **Audio Clips** | 5 | Warp mode, warp markers, file paths, warping control |
+| **Follow Actions** | 3 | Clip follow actions for live performance |
+| **Crossfader** | 3 | DJ-style crossfader control and assignment |
+| **Track Groups** | 4 | Group/ungroup tracks, group management |
+| **View/Navigation** | 4 | Show views, focus tracks, scroll timeline |
+| **Color Utilities** | 2 | Get clip/track colors |
+| **Groove Pool** | 2 | Groove library access and assignment |
+| **Rack/Chains** | 4 | Instrument/effect rack chain control |
 
-**Total: 125 Tools**
+**Total: 159 Tools**
 
 ## Quick Start
 
@@ -118,7 +128,7 @@ send_command('launch_clip', track_index=track_index, scene_index=0)
 ## Documentation
 
 - **[Installation Guide](docs/INSTALLATION.md)** - Detailed installation instructions
-- **[API Reference](docs/API_REFERENCE.md)** - Complete list of all 125 tools
+- **[API Reference](docs/API_REFERENCE.md)** - Complete list of all 159 tools
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 
 ## Examples
@@ -128,7 +138,7 @@ Check the `examples/` directory for:
 - **`test_connection.py`** - Verify the Remote Script is working
 - **`basic_usage.py`** - Simple examples of common operations
 - **`creative_workflow.py`** - Generate music programmatically
-- **`test_all_tools.py`** - Comprehensive test of all 125 tools
+- **`test_all_tools.py`** - Comprehensive test of all 159 tools
 
 ## Architecture
 

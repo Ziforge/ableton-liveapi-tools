@@ -528,6 +528,94 @@ class ClaudeMCP:
             elif action == 'get_cv_tools_devices':
                 return self.tools.get_cv_tools_devices(command.get('track_index', 0))
 
+            # Master Track Control
+            elif action == 'get_master_track_info':
+                return self.tools.get_master_track_info()
+            elif action == 'set_master_volume':
+                return self.tools.set_master_volume(command.get('volume', 0.85))
+            elif action == 'set_master_pan':
+                return self.tools.set_master_pan(command.get('pan', 0.0))
+            elif action == 'get_master_devices':
+                return self.tools.get_master_devices()
+
+            # Return Track Operations
+            elif action == 'get_return_track_count':
+                return self.tools.get_return_track_count()
+            elif action == 'get_return_track_info':
+                return self.tools.get_return_track_info(command.get('return_index', 0))
+            elif action == 'set_return_track_volume':
+                return self.tools.set_return_track_volume(command.get('return_index', 0), command.get('volume', 0.85))
+
+            # Audio Clip Operations
+            elif action == 'get_clip_warp_mode':
+                return self.tools.get_clip_warp_mode(command.get('track_index', 0), command.get('clip_index', 0))
+            elif action == 'set_clip_warp_mode':
+                return self.tools.set_clip_warp_mode(command.get('track_index', 0), command.get('clip_index', 0), command.get('warp_mode', 0))
+            elif action == 'get_clip_file_path':
+                return self.tools.get_clip_file_path(command.get('track_index', 0), command.get('clip_index', 0))
+            elif action == 'set_clip_warping':
+                return self.tools.set_clip_warping(command.get('track_index', 0), command.get('clip_index', 0), command.get('warping', True))
+            elif action == 'get_warp_markers':
+                return self.tools.get_warp_markers(command.get('track_index', 0), command.get('clip_index', 0))
+
+            # Follow Actions
+            elif action == 'get_clip_follow_action':
+                return self.tools.get_clip_follow_action(command.get('track_index', 0), command.get('clip_index', 0))
+            elif action == 'set_clip_follow_action':
+                return self.tools.set_clip_follow_action(command.get('track_index', 0), command.get('clip_index', 0), command.get('action_A', 0), command.get('action_B', 0), command.get('chance_A', 1.0))
+            elif action == 'set_follow_action_time':
+                return self.tools.set_follow_action_time(command.get('track_index', 0), command.get('clip_index', 0), command.get('time_in_bars', 1.0))
+
+            # Crossfader
+            elif action == 'get_crossfader_assignment':
+                return self.tools.get_crossfader_assignment(command.get('track_index', 0))
+            elif action == 'set_crossfader_assignment':
+                return self.tools.set_crossfader_assignment(command.get('track_index', 0), command.get('assignment', 0))
+            elif action == 'get_crossfader_position':
+                return self.tools.get_crossfader_position()
+
+            # Track Groups
+            elif action == 'create_group_track':
+                return self.tools.create_group_track(command.get('name'))
+            elif action == 'group_tracks':
+                return self.tools.group_tracks(command.get('start_index', 0), command.get('end_index', 0))
+            elif action == 'get_track_is_grouped':
+                return self.tools.get_track_is_grouped(command.get('track_index', 0))
+            elif action == 'ungroup_track':
+                return self.tools.ungroup_track(command.get('group_track_index', 0))
+
+            # View/Navigation
+            elif action == 'show_clip_view':
+                return self.tools.show_clip_view()
+            elif action == 'show_arrangement_view':
+                return self.tools.show_arrangement_view()
+            elif action == 'focus_track':
+                return self.tools.focus_track(command.get('track_index', 0))
+            elif action == 'scroll_view_to_time':
+                return self.tools.scroll_view_to_time(command.get('time_in_beats', 0.0))
+
+            # Color Utilities
+            elif action == 'get_clip_color':
+                return self.tools.get_clip_color(command.get('track_index', 0), command.get('clip_index', 0))
+            elif action == 'get_track_color':
+                return self.tools.get_track_color(command.get('track_index', 0))
+
+            # Groove Pool
+            elif action == 'get_groove_pool_grooves':
+                return self.tools.get_groove_pool_grooves()
+            elif action == 'set_clip_groove':
+                return self.tools.set_clip_groove(command.get('track_index', 0), command.get('clip_index', 0), command.get('groove_index', 0))
+
+            # Rack/Chain Operations
+            elif action == 'get_device_chains':
+                return self.tools.get_device_chains(command.get('track_index', 0), command.get('device_index', 0))
+            elif action == 'get_chain_devices':
+                return self.tools.get_chain_devices(command.get('track_index', 0), command.get('device_index', 0), command.get('chain_index', 0))
+            elif action == 'set_chain_mute':
+                return self.tools.set_chain_mute(command.get('track_index', 0), command.get('device_index', 0), command.get('chain_index', 0), command.get('mute', True))
+            elif action == 'set_chain_solo':
+                return self.tools.set_chain_solo(command.get('track_index', 0), command.get('device_index', 0), command.get('chain_index', 0), command.get('solo', True))
+
             # Unknown action
             else:
                 return {

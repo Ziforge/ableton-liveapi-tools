@@ -118,7 +118,7 @@ send_command('launch_clip', track_index=track_index, scene_index=0)
 ## Documentation
 
 - **[Installation Guide](docs/INSTALLATION.md)** - Detailed installation instructions
-- **[API Reference](docs/API_REFERENCE.md)** - Complete list of all 120 tools
+- **[API Reference](docs/API_REFERENCE.md)** - Complete list of all 125 tools
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 
 ## Examples
@@ -128,7 +128,7 @@ Check the `examples/` directory for:
 - **`test_connection.py`** - Verify the Remote Script is working
 - **`basic_usage.py`** - Simple examples of common operations
 - **`creative_workflow.py`** - Generate music programmatically
-- **`test_all_tools.py`** - Comprehensive test of all 120 tools
+- **`test_all_tools.py`** - Comprehensive test of all 125 tools
 
 ## Architecture
 

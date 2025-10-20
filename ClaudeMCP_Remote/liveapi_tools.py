@@ -13,7 +13,7 @@ class LiveAPITools:
     """
     Comprehensive implementation of LiveAPI operations
 
-    Provides 120+ tools for controlling every aspect of Ableton Live:
+    Provides 125 tools for controlling every aspect of Ableton Live:
     - Session control (play/stop/record/tempo/time signature)
     - Track management (create/delete/arm/solo/mute)
     - Clip operations (create/delete/launch/stop)

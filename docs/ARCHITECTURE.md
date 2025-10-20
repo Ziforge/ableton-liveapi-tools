@@ -79,7 +79,7 @@ stateDiagram-v2
 
 ### 2. LiveAPITools Class
 
-Encapsulates all 120 LiveAPI operations.
+Encapsulates all 125 LiveAPI operations (including Max for Live and CV Tools support).
 
 **Categories:**
 ```mermaid
@@ -94,6 +94,7 @@ graph LR
     A --> I[Routing]
     A --> J[Browser]
     A --> K[Transport]
+    A --> L[Max for Live]
 
     B --> B1[14 tools]
     C --> C1[13 tools]
@@ -105,6 +106,7 @@ graph LR
     I --> I1[8 tools]
     J --> J1[4 tools]
     K --> K1[8 tools]
+    L --> L1[5 tools]
 ```
 
 ### 3. Socket Server Thread

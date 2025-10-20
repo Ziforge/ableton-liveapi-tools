@@ -75,7 +75,7 @@ python3 examples/test_connection.py
 Expected output:
 ```
 Connection successful
-Tool count: 120
+Tool count: 125
 Ableton version: 12
 ```
 

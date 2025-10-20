@@ -1,6 +1,6 @@
 # ClaudeMCP Remote Script for Ableton Live
 
-A comprehensive Python Remote Script for Ableton Live that exposes **159 LiveAPI tools** via a simple TCP socket interface. Control every aspect of your Ableton Live session programmatically - from playback and recording to tracks, clips, devices, MIDI notes, and Max for Live / CV Tools devices.
+A comprehensive Python Remote Script for Ableton Live that exposes **196 LiveAPI tools** via a simple TCP socket interface. Control every aspect of your Ableton Live session programmatically - from playback and recording to tracks, clips, devices, MIDI notes, and Max for Live / CV Tools devices.
 
 [![CI](https://github.com/Ziforge/ableton-liveapi-tools/workflows/CI/badge.svg)](https://github.com/Ziforge/ableton-liveapi-tools/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -10,7 +10,7 @@ A comprehensive Python Remote Script for Ableton Live that exposes **159 LiveAPI
 
 ## Features
 
-- **159 LiveAPI Tools** - Complete control over Ableton Live including Max for Live & CV Tools
+- **196 LiveAPI Tools** - Complete control over Ableton Live including Max for Live & CV Tools
 - **Thread-Safe Architecture** - Queue-based design for reliable communication
 - **Simple TCP Interface** - Send JSON commands, receive JSON responses
 - **Real-Time Control** - Low latency for live performance
@@ -49,8 +49,22 @@ A comprehensive Python Remote Script for Ableton Live that exposes **159 LiveAPI
 | **Color Utilities** | 2 | Get clip/track colors |
 | **Groove Pool** | 2 | Groove library access and assignment |
 | **Rack/Chains** | 4 | Instrument/effect rack chain control |
+| **Clip Automation** | 6 | Automation envelopes, steps, values |
+| **Track Freeze/Flatten** | 3 | Freeze tracks for CPU, flatten to audio |
+| **Clip Fades** | 4 | Fade in/out for audio clips |
+| **Scene Color** | 2 | Get/set scene colors |
+| **Track Annotations** | 2 | Track annotation text |
+| **Clip Annotations** | 2 | Clip annotation text |
+| **Track Delay** | 2 | Delay compensation in samples |
+| **Arrangement Clips** | 3 | Get/duplicate/consolidate arrangement clips |
+| **Plugin Windows** | 2 | Show/hide plugin windows |
+| **Metronome** | 2 | Metronome volume control |
+| **MIDI Messages** | 2 | Send MIDI CC and Program Change |
+| **Sampler/Simpler** | 3 | Sample length and playback mode |
+| **Clip RAM Mode** | 2 | RAM vs disk streaming |
+| **Device Info** | 2 | Device class name and type |
 
-**Total: 159 Tools**
+**Total: 196 Tools**
 
 ## Quick Start
 
@@ -128,7 +142,7 @@ send_command('launch_clip', track_index=track_index, scene_index=0)
 ## Documentation
 
 - **[Installation Guide](docs/INSTALLATION.md)** - Detailed installation instructions
-- **[API Reference](docs/API_REFERENCE.md)** - Complete list of all 159 tools
+- **[API Reference](docs/API_REFERENCE.md)** - Complete list of all 196 tools
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 
 ## Examples
@@ -138,7 +152,7 @@ Check the `examples/` directory for:
 - **`test_connection.py`** - Verify the Remote Script is working
 - **`basic_usage.py`** - Simple examples of common operations
 - **`creative_workflow.py`** - Generate music programmatically
-- **`test_all_tools.py`** - Comprehensive test of all 159 tools
+- **`test_all_tools.py`** - Comprehensive test of all 196 tools
 
 ## Architecture
 

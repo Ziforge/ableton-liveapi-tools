@@ -79,7 +79,7 @@ stateDiagram-v2
 
 ### 2. LiveAPITools Class
 
-Encapsulates all 159 LiveAPI operations (including Max for Live, CV Tools, master/return tracks, follow actions, and more).
+Encapsulates all 196 LiveAPI operations (including Max for Live, CV Tools, master/return tracks, follow actions, and more).
 
 **Categories:**
 ```mermaid
@@ -105,6 +105,20 @@ graph LR
     A --> T[Colors - 2]
     A --> U[Groove Pool - 2]
     A --> V[Racks/Chains - 4]
+    A --> W[Clip Automation - 6]
+    A --> X[Track Freeze/Flatten - 3]
+    A --> Y[Clip Fades - 4]
+    A --> Z[Scene Color - 2]
+    A --> AA[Track Annotations - 2]
+    A --> AB[Clip Annotations - 2]
+    A --> AC[Track Delay - 2]
+    A --> AD[Arrangement Clips - 3]
+    A --> AE[Plugin Windows - 2]
+    A --> AF[Metronome - 2]
+    A --> AG[MIDI Messages - 2]
+    A --> AH[Sampler/Simpler - 3]
+    A --> AI[Clip RAM Mode - 2]
+    A --> AJ[Device Info - 2]
 ```
 
 ### 3. Socket Server Thread

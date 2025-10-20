@@ -616,6 +616,108 @@ class ClaudeMCP:
             elif action == 'set_chain_solo':
                 return self.tools.set_chain_solo(command.get('track_index', 0), command.get('device_index', 0), command.get('chain_index', 0), command.get('solo', True))
 
+            # Clip Automation Envelopes
+            elif action == 'get_clip_automation_envelope':
+                return self.tools.get_clip_automation_envelope(command.get('track_index', 0), command.get('clip_index', 0), command.get('param_name', ''))
+            elif action == 'create_automation_envelope':
+                return self.tools.create_automation_envelope(command.get('track_index', 0), command.get('clip_index', 0), command.get('parameter_object'))
+            elif action == 'clear_automation_envelope':
+                return self.tools.clear_automation_envelope(command.get('track_index', 0), command.get('clip_index', 0), command.get('param_name', ''))
+            elif action == 'insert_automation_step':
+                return self.tools.insert_automation_step(command.get('track_index', 0), command.get('clip_index', 0), command.get('param_name', ''), command.get('time', 0.0), command.get('value', 0.0))
+            elif action == 'remove_automation_step':
+                return self.tools.remove_automation_step(command.get('track_index', 0), command.get('clip_index', 0), command.get('param_name', ''), command.get('time', 0.0))
+            elif action == 'get_automation_envelope_values':
+                return self.tools.get_automation_envelope_values(command.get('track_index', 0), command.get('clip_index', 0), command.get('param_name', ''))
+
+            # Track Freeze/Flatten
+            elif action == 'freeze_track':
+                return self.tools.freeze_track(command.get('track_index', 0))
+            elif action == 'unfreeze_track':
+                return self.tools.unfreeze_track(command.get('track_index', 0))
+            elif action == 'flatten_track':
+                return self.tools.flatten_track(command.get('track_index', 0))
+
+            # Clip Fade In/Out
+            elif action == 'get_clip_fade_in':
+                return self.tools.get_clip_fade_in(command.get('track_index', 0), command.get('clip_index', 0))
+            elif action == 'set_clip_fade_in':
+                return self.tools.set_clip_fade_in(command.get('track_index', 0), command.get('clip_index', 0), command.get('fade_time', 0.0))
+            elif action == 'get_clip_fade_out':
+                return self.tools.get_clip_fade_out(command.get('track_index', 0), command.get('clip_index', 0))
+            elif action == 'set_clip_fade_out':
+                return self.tools.set_clip_fade_out(command.get('track_index', 0), command.get('clip_index', 0), command.get('fade_time', 0.0))
+
+            # Scene Color
+            elif action == 'get_scene_color':
+                return self.tools.get_scene_color(command.get('scene_index', 0))
+            elif action == 'set_scene_color':
+                return self.tools.set_scene_color(command.get('scene_index', 0), command.get('color_index', 0))
+
+            # Track Annotations
+            elif action == 'get_track_annotation':
+                return self.tools.get_track_annotation(command.get('track_index', 0))
+            elif action == 'set_track_annotation':
+                return self.tools.set_track_annotation(command.get('track_index', 0), command.get('annotation_text', ''))
+
+            # Clip Annotations
+            elif action == 'get_clip_annotation':
+                return self.tools.get_clip_annotation(command.get('track_index', 0), command.get('clip_index', 0))
+            elif action == 'set_clip_annotation':
+                return self.tools.set_clip_annotation(command.get('track_index', 0), command.get('clip_index', 0), command.get('annotation_text', ''))
+
+            # Track Delay Compensation
+            elif action == 'get_track_delay':
+                return self.tools.get_track_delay(command.get('track_index', 0))
+            elif action == 'set_track_delay':
+                return self.tools.set_track_delay(command.get('track_index', 0), command.get('delay_samples', 0.0))
+
+            # Arrangement View Clips
+            elif action == 'get_arrangement_clips':
+                return self.tools.get_arrangement_clips(command.get('track_index', 0))
+            elif action == 'duplicate_to_arrangement':
+                return self.tools.duplicate_to_arrangement(command.get('track_index', 0), command.get('clip_index', 0))
+            elif action == 'consolidate_clip':
+                return self.tools.consolidate_clip(command.get('track_index', 0), command.get('start_time', 0.0), command.get('end_time', 4.0))
+
+            # Plugin Window Control
+            elif action == 'show_plugin_window':
+                return self.tools.show_plugin_window(command.get('track_index', 0), command.get('device_index', 0))
+            elif action == 'hide_plugin_window':
+                return self.tools.hide_plugin_window(command.get('track_index', 0), command.get('device_index', 0))
+
+            # Metronome Volume
+            elif action == 'get_metronome_volume':
+                return self.tools.get_metronome_volume()
+            elif action == 'set_metronome_volume':
+                return self.tools.set_metronome_volume(command.get('volume', 0.5))
+
+            # MIDI CC/Program Change
+            elif action == 'send_midi_cc':
+                return self.tools.send_midi_cc(command.get('track_index', 0), command.get('cc_number', 0), command.get('cc_value', 0), command.get('channel', 0))
+            elif action == 'send_program_change':
+                return self.tools.send_program_change(command.get('track_index', 0), command.get('program_number', 0), command.get('channel', 0))
+
+            # Sample/Simpler Operations
+            elif action == 'get_sample_length':
+                return self.tools.get_sample_length(command.get('track_index', 0), command.get('clip_index', 0))
+            elif action == 'get_sample_playback_mode':
+                return self.tools.get_sample_playback_mode(command.get('track_index', 0), command.get('device_index', 0))
+            elif action == 'set_sample_playback_mode':
+                return self.tools.set_sample_playback_mode(command.get('track_index', 0), command.get('device_index', 0), command.get('mode', 0))
+
+            # Clip RAM Mode
+            elif action == 'get_clip_ram_mode':
+                return self.tools.get_clip_ram_mode(command.get('track_index', 0), command.get('clip_index', 0))
+            elif action == 'set_clip_ram_mode':
+                return self.tools.set_clip_ram_mode(command.get('track_index', 0), command.get('clip_index', 0), command.get('ram_mode', True))
+
+            # Device Utilities
+            elif action == 'get_device_class_name':
+                return self.tools.get_device_class_name(command.get('track_index', 0), command.get('device_index', 0))
+            elif action == 'get_device_type':
+                return self.tools.get_device_type(command.get('track_index', 0), command.get('device_index', 0))
+
             # Unknown action
             else:
                 return {

@@ -119,7 +119,7 @@ ln -s "$(pwd)/ClaudeMCP_Remote" "$HOME/.ableton/User Library/Remote Scripts/Clau
 ```
 ClaudeMCP_Remote/
 ├── __init__.py          # Main Remote Script entry point
-└── liveapi_tools.py     # 159 LiveAPI tools implementation
+└── liveapi_tools.py     # 196 LiveAPI tools implementation
 
 docs/
 ├── ARCHITECTURE.md      # System architecture

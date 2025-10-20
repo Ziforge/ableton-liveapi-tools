@@ -16,8 +16,8 @@
 ### Method 1: Automated Installation (Recommended)
 
 ```bash
-git clone https://github.com/yourusername/ableton-mcp-remote.git
-cd ableton-mcp-remote
+git clone https://github.com/Ziforge/ableton-liveapi-tools.git
+cd ableton-liveapi-tools
 bash install.sh
 ```
 
@@ -171,8 +171,8 @@ For development and debugging:
 
 1. Clone repository:
    ```bash
-   git clone https://github.com/yourusername/ableton-mcp-remote.git
-   cd ableton-mcp-remote
+   git clone https://github.com/Ziforge/ableton-liveapi-tools.git
+   cd ableton-liveapi-tools
    ```
 
 2. Create symlink to Remote Scripts directory:

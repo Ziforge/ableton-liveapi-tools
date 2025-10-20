@@ -1,6 +1,6 @@
 # ClaudeMCP Remote Script for Ableton Live
 
-A comprehensive Python Remote Script for Ableton Live that exposes **120 LiveAPI tools** via a simple TCP socket interface. Control every aspect of your Ableton Live session programmatically - from playback and recording to tracks, clips, devices, and MIDI notes.
+A comprehensive Python Remote Script for Ableton Live that exposes **125 LiveAPI tools** via a simple TCP socket interface. Control every aspect of your Ableton Live session programmatically - from playback and recording to tracks, clips, devices, MIDI notes, and Max for Live / CV Tools devices.
 
 [![CI](https://github.com/Ziforge/ableton-liveapi-tools/workflows/CI/badge.svg)](https://github.com/Ziforge/ableton-liveapi-tools/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -10,10 +10,12 @@ A comprehensive Python Remote Script for Ableton Live that exposes **120 LiveAPI
 
 ## Features
 
-- **120 LiveAPI Tools** - Complete control over Ableton Live
+- **125 LiveAPI Tools** - Complete control over Ableton Live including Max for Live & CV Tools
 - **Thread-Safe Architecture** - Queue-based design for reliable communication
 - **Simple TCP Interface** - Send JSON commands, receive JSON responses
 - **Real-Time Control** - Low latency for live performance
+- **Max for Live Support** - Detect and control M4L devices by parameter name
+- **CV Tools Integration** - Full support for Ableton's CV Tools pack
 - **MCP Compatible** - Works with Model Context Protocol servers
 - **Well Documented** - Comprehensive examples and API reference
 
@@ -36,8 +38,9 @@ A comprehensive Python Remote Script for Ableton Live that exposes **120 LiveAPI
 | **Monitoring** | 4 | Monitoring state, available routing |
 | **Loop/Locator** | 6 | Enable loop, create locators, jump by amount |
 | **Project** | 6 | Project root, session record, cue points |
+| **Max for Live** | 5 | Detect M4L devices, control by parameter name, CV Tools support |
 
-**Total: 120 Tools**
+**Total: 125 Tools**
 
 ## Quick Start
 
@@ -174,6 +177,51 @@ This design ensures all LiveAPI calls happen on Ableton's main thread, preventin
 - **Integration** - Connect Ableton to other software/hardware
 - **Custom Controllers** - Build your own MIDI/OSC controllers
 - **Music Analysis** - Extract data from Ableton sessions
+- **CV Tools Control** - Automate Max for Live CV modulation devices
+
+## Max for Live & CV Tools Support
+
+The Remote Script includes full support for Max for Live (M4L) devices, including Ableton's CV Tools pack:
+
+### Detect M4L Devices
+```python
+# Get all Max for Live devices on track 0
+response = send_command({"action": "get_m4l_devices", "track_index": 0})
+
+# Get only CV Tools devices
+cv_devices = send_command({"action": "get_cv_tools_devices", "track_index": 0})
+```
+
+### Control by Parameter Name
+```python
+# Set CV LFO rate by parameter name (easier than finding param index)
+send_command({
+    "action": "set_device_param_by_name",
+    "track_index": 0,
+    "device_index": 2,
+    "param_name": "Rate",
+    "value": 0.75
+})
+
+# Get parameter value by name
+param = send_command({
+    "action": "get_m4l_param_by_name",
+    "track_index": 0,
+    "device_index": 2,
+    "param_name": "Rate"
+})
+```
+
+### Supported M4L Device Types
+- **CV LFO** - Control Rate, Shape, Depth
+- **CV Shaper** - Control Drive, Curve, Bias
+- **CV Envelope Follower** - Control Attack, Release, Gain
+- **CV Instrument** - Control Range, Quantize
+- **Any M4L Device** - Access parameters by name
+
+See `examples/cv_tools_control.py` for a complete working example.
+
+For detailed M4L integration documentation, see [MAX4LIVE_INTEGRATION.md](MAX4LIVE_INTEGRATION.md).
 
 ## Contributing
 

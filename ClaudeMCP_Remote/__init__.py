@@ -516,6 +516,18 @@ class ClaudeMCP:
             elif action == 'randomize_device':
                 return self.tools.randomize_device(command.get('track_index', 0), command.get('device_index', 0))
 
+            # Max for Live (M4L) operations
+            elif action == 'is_max_device':
+                return self.tools.is_max_device(command.get('track_index', 0), command.get('device_index', 0))
+            elif action == 'get_m4l_devices':
+                return self.tools.get_m4l_devices(command.get('track_index', 0))
+            elif action == 'set_device_param_by_name':
+                return self.tools.set_device_param_by_name(command.get('track_index', 0), command.get('device_index', 0), command.get('param_name', ''), command.get('value', 0.0))
+            elif action == 'get_m4l_param_by_name':
+                return self.tools.get_m4l_param_by_name(command.get('track_index', 0), command.get('device_index', 0), command.get('param_name', ''))
+            elif action == 'get_cv_tools_devices':
+                return self.tools.get_cv_tools_devices(command.get('track_index', 0))
+
             # Unknown action
             else:
                 return {

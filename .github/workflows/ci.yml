@@ -26,9 +26,9 @@ jobs:
     - name: Validate Python syntax (Python 2.7 compatibility check)
       run: |
         echo "Checking Python 2.7 syntax compatibility..."
-        # Check for common Python 3 syntax that breaks Python 2.7
-        ! grep -r "f'" ClaudeMCP_Remote/ || (echo "Found f-strings (not compatible with Python 2.7)" && exit 1)
-        ! grep -r 'f"' ClaudeMCP_Remote/ || (echo "Found f-strings (not compatible with Python 2.7)" && exit 1)
+        # Check for f-strings (more precise pattern to avoid false positives)
+        # Look for f" or f' preceded by =, (, comma, or space
+        ! grep -rE '(\s|=|\(|,)f["'"'"']' ClaudeMCP_Remote/ || (echo "Found f-strings (not compatible with Python 2.7)" && exit 1)
         echo "✓ No obvious Python 2.7 incompatibilities found"
 
     - name: Check for common issues

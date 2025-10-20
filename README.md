@@ -10,14 +10,40 @@ A comprehensive Python Remote Script for Ableton Live that exposes **220 LiveAPI
 
 ## Features
 
-- **220 LiveAPI Tools** - Complete control over Ableton Live including Max for Live & CV Tools
+- **220 LiveAPI Tools** - Covers 44 functional categories of Ableton Live's Python API
 - **Thread-Safe Architecture** - Queue-based design for reliable communication
 - **Simple TCP Interface** - Send JSON commands, receive JSON responses
 - **Real-Time Control** - Low latency for live performance
+- **Live 12 Support** - Take lanes, display values, application info (Live 12+)
+- **Live 11 Compatible** - Backward compatible with graceful feature detection
 - **Max for Live Support** - Detect and control M4L devices by parameter name
 - **CV Tools Integration** - Full support for Ableton's CV Tools pack
 - **MCP Compatible** - Works with Model Context Protocol servers
 - **Well Documented** - Comprehensive examples and API reference
+
+## Coverage Methodology
+
+This implementation provides **220 tools across 44 categories** based on:
+
+- **Primary Source**: [Ableton Live API Documentation](https://docs.cycling74.com/max8/vignettes/live_api_overview) (Cycling '74)
+- **Reference**: [Live API Doc Archive](https://nsuspray.github.io/Live_API_Doc/) (versions 9.7 - 11.0)
+- **Live 12 Features**: Based on [Live 12 Release Notes](https://www.ableton.com/en/release-notes/live-12/)
+
+**Coverage includes:**
+- Session and arrangement control (14 tools)
+- Track management (13 tools)
+- Clip operations (18 tools)
+- MIDI note editing (7 tools)
+- Device control (12 tools)
+- Live 12 exclusive features: Take lanes (8 tools), application info (4 tools)
+- Max for Live integration (5 tools)
+- 38 additional functional categories
+
+**Known Limitations:**
+- Clip envelope automation requires parameter object references (partial implementation)
+- Some MIDI CC/Program Change operations are placeholders
+- Consolidation and some arrangement operations have simplified implementations
+- Not all Live Object Model (LOM) properties may be exposed (continuous development)
 
 ## Tool Categories
 
@@ -250,6 +276,27 @@ param = send_command({
 See `examples/cv_tools_control.py` for a complete working example.
 
 For detailed M4L integration documentation, see [MAX4LIVE_INTEGRATION.md](MAX4LIVE_INTEGRATION.md).
+
+## Comparison with Similar Projects
+
+### vs. ahujasid/ableton-mcp
+
+[ahujasid/ableton-mcp](https://github.com/ahujasid/ableton-mcp) is another MCP-based Ableton control project. **Verifiable differences:**
+
+| Feature | This Project | ahujasid/ableton-mcp |
+|---------|-------------|---------------------|
+| **Tool Count** | 220 tools | ~40 tools |
+| **Architecture** | Python Remote Script (native) | AbletonJS + Node.js bridge |
+| **Transport** | Direct TCP socket (port 9004) | HTTP/WebSocket via AbletonJS |
+| **Live 12 Features** | Take lanes, display values ✅ | Not specified |
+| **Thread Safety** | Queue-based (main thread execution) | AbletonJS handles threading |
+| **Deployment** | Single Python script | Node.js + AbletonJS dependencies |
+
+**Different Design Philosophies:**
+- **This project**: Maximize API coverage (220 tools), native Python, no external dependencies
+- **ahujasid/ableton-mcp**: Minimal viable toolset (~40 tools), JavaScript ecosystem integration
+
+Both are valid approaches for different use cases. This project prioritizes breadth of API coverage, while ahujasid/ableton-mcp prioritizes integration with JavaScript/Node.js workflows.
 
 ## Contributing
 

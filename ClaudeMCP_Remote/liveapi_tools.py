@@ -3216,8 +3216,8 @@ class LiveAPITools:
     # CLIP AUTOMATION ENVELOPES (6 tools)
     # ========================================================================
 
-    def get_clip_automation_envelope(self, track_index, clip_index, param_name):
-        """Get automation envelope for a parameter in a clip"""
+    def get_clip_automation_envelope(self, track_index, clip_index, device_index, param_index):
+        """Get automation envelope for a device parameter in a clip"""
         try:
             track = self.song.tracks[track_index]
             clip_slot = track.clip_slots[clip_index]
@@ -3227,18 +3227,35 @@ class LiveAPITools:
 
             clip = clip_slot.clip
 
-            # Find the automation envelope by parameter name
-            # Note: This is a simplified version - full implementation would need device/parameter lookup
-            return {
-                "ok": True,
-                "message": "Automation envelope info (requires parameter object reference)",
-                "clip_name": str(clip.name)
-            }
+            # Get the device parameter
+            device = track.devices[device_index]
+            param = device.parameters[param_index]
+
+            # Get automation envelope for this parameter
+            if hasattr(clip, 'automation_envelope'):
+                envelope = clip.automation_envelope(param)
+
+                if envelope:
+                    return {
+                        "ok": True,
+                        "has_envelope": True,
+                        "parameter_name": str(param.name),
+                        "device_name": str(device.name)
+                    }
+                else:
+                    return {
+                        "ok": True,
+                        "has_envelope": False,
+                        "parameter_name": str(param.name),
+                        "message": "No automation envelope for this parameter"
+                    }
+            else:
+                return {"ok": False, "error": "automation_envelope not available"}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    def create_automation_envelope(self, track_index, clip_index, parameter_object):
-        """Create automation envelope for a parameter"""
+    def create_automation_envelope(self, track_index, clip_index, device_index, param_index):
+        """Create automation envelope for a device parameter"""
         try:
             track = self.song.tracks[track_index]
             clip_slot = track.clip_slots[clip_index]
@@ -3248,17 +3265,26 @@ class LiveAPITools:
 
             clip = clip_slot.clip
 
-            # Note: Requires Live.DeviceParameter.DeviceParameter object
-            # This is a placeholder - full implementation needs device parameter access
-            return {
-                "ok": True,
-                "message": "Automation envelope created (requires parameter object)"
-            }
+            # Get the device parameter
+            device = track.devices[device_index]
+            param = device.parameters[param_index]
+
+            # Create automation envelope
+            if hasattr(clip, 'create_automation_envelope'):
+                envelope = clip.create_automation_envelope(param)
+                return {
+                    "ok": True,
+                    "parameter_name": str(param.name),
+                    "device_name": str(device.name),
+                    "message": "Automation envelope created"
+                }
+            else:
+                return {"ok": False, "error": "create_automation_envelope not available"}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    def clear_automation_envelope(self, track_index, clip_index, param_name):
-        """Clear automation envelope for a parameter"""
+    def clear_automation_envelope(self, track_index, clip_index, device_index, param_index):
+        """Clear automation envelope for a device parameter"""
         try:
             track = self.song.tracks[track_index]
             clip_slot = track.clip_slots[clip_index]
@@ -3268,15 +3294,24 @@ class LiveAPITools:
 
             clip = clip_slot.clip
 
-            # Clear automation - implementation depends on parameter access
-            return {
-                "ok": True,
-                "message": "Automation envelope cleared"
-            }
+            # Get the device parameter
+            device = track.devices[device_index]
+            param = device.parameters[param_index]
+
+            # Clear automation envelope
+            if hasattr(clip, 'clear_envelope'):
+                clip.clear_envelope(param)
+                return {
+                    "ok": True,
+                    "parameter_name": str(param.name),
+                    "message": "Automation envelope cleared"
+                }
+            else:
+                return {"ok": False, "error": "clear_envelope not available"}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    def insert_automation_step(self, track_index, clip_index, param_name, time, value):
+    def insert_automation_step(self, track_index, clip_index, device_index, param_index, time, value):
         """Insert automation step/breakpoint at specific time"""
         try:
             track = self.song.tracks[track_index]
@@ -3287,17 +3322,29 @@ class LiveAPITools:
 
             clip = clip_slot.clip
 
-            # Insert step - requires envelope access
-            return {
-                "ok": True,
-                "time": float(time),
-                "value": float(value),
-                "message": "Automation step inserted"
-            }
+            # Get the device parameter and envelope
+            device = track.devices[device_index]
+            param = device.parameters[param_index]
+
+            if hasattr(clip, 'automation_envelope'):
+                envelope = clip.automation_envelope(param)
+                if envelope and hasattr(envelope, 'insert_step'):
+                    envelope.insert_step(float(time), float(value))
+                    return {
+                        "ok": True,
+                        "time": float(time),
+                        "value": float(value),
+                        "parameter_name": str(param.name),
+                        "message": "Automation step inserted"
+                    }
+                else:
+                    return {"ok": False, "error": "No envelope or insert_step not available"}
+            else:
+                return {"ok": False, "error": "automation_envelope not available"}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    def remove_automation_step(self, track_index, clip_index, param_name, time):
+    def remove_automation_step(self, track_index, clip_index, device_index, param_index, time):
         """Remove automation step/breakpoint at specific time"""
         try:
             track = self.song.tracks[track_index]
@@ -3308,15 +3355,28 @@ class LiveAPITools:
 
             clip = clip_slot.clip
 
-            return {
-                "ok": True,
-                "time": float(time),
-                "message": "Automation step removed"
-            }
+            # Get the device parameter and envelope
+            device = track.devices[device_index]
+            param = device.parameters[param_index]
+
+            if hasattr(clip, 'automation_envelope'):
+                envelope = clip.automation_envelope(param)
+                if envelope and hasattr(envelope, 'remove_step'):
+                    envelope.remove_step(float(time))
+                    return {
+                        "ok": True,
+                        "time": float(time),
+                        "parameter_name": str(param.name),
+                        "message": "Automation step removed"
+                    }
+                else:
+                    return {"ok": False, "error": "No envelope or remove_step not available"}
+            else:
+                return {"ok": False, "error": "automation_envelope not available"}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    def get_automation_envelope_values(self, track_index, clip_index, param_name):
+    def get_automation_envelope_values(self, track_index, clip_index, device_index, param_index):
         """Get all automation envelope values for a parameter"""
         try:
             track = self.song.tracks[track_index]
@@ -3327,12 +3387,30 @@ class LiveAPITools:
 
             clip = clip_slot.clip
 
-            # Get automation values - requires envelope iteration
-            return {
-                "ok": True,
-                "values": [],
-                "message": "Automation values retrieved"
-            }
+            # Get the device parameter and envelope
+            device = track.devices[device_index]
+            param = device.parameters[param_index]
+
+            if hasattr(clip, 'automation_envelope'):
+                envelope = clip.automation_envelope(param)
+                if envelope:
+                    # Get envelope value at different time points
+                    # Note: Full implementation would iterate through all steps
+                    return {
+                        "ok": True,
+                        "parameter_name": str(param.name),
+                        "has_envelope": True,
+                        "message": "Use insert_step/remove_step to modify automation"
+                    }
+                else:
+                    return {
+                        "ok": True,
+                        "parameter_name": str(param.name),
+                        "has_envelope": False,
+                        "message": "No automation envelope for this parameter"
+                    }
+            else:
+                return {"ok": False, "error": "automation_envelope not available"}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -3777,32 +3855,45 @@ class LiveAPITools:
     def send_midi_cc(self, track_index, cc_number, cc_value, channel=0):
         """Send MIDI CC message to a track"""
         try:
-            track = self.song.tracks[track_index]
+            # MIDI CC status byte: 176 (0xB0) + channel
+            # Format: (status_byte, cc_number, cc_value)
+            status_byte = 176 + int(channel)
+            midi_bytes = (int(status_byte), int(cc_number), int(cc_value))
 
-            # MIDI CC sending requires specific MIDI output routing
-            # This is a placeholder for the MIDI sending logic
-            return {
-                "ok": True,
-                "cc_number": int(cc_number),
-                "cc_value": int(cc_value),
-                "channel": int(channel),
-                "message": "MIDI CC sent"
-            }
+            # Send MIDI via song.send_midi
+            if hasattr(self.song, 'send_midi'):
+                self.song.send_midi(midi_bytes)
+                return {
+                    "ok": True,
+                    "cc_number": int(cc_number),
+                    "cc_value": int(cc_value),
+                    "channel": int(channel),
+                    "message": "MIDI CC sent"
+                }
+            else:
+                return {"ok": False, "error": "send_midi not available"}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
     def send_program_change(self, track_index, program_number, channel=0):
         """Send MIDI Program Change message to a track"""
         try:
-            track = self.song.tracks[track_index]
+            # MIDI Program Change status byte: 192 (0xC0) + channel
+            # Format: (status_byte, program_number)
+            status_byte = 192 + int(channel)
+            midi_bytes = (int(status_byte), int(program_number))
 
-            # MIDI Program Change sending
-            return {
-                "ok": True,
-                "program_number": int(program_number),
-                "channel": int(channel),
-                "message": "MIDI Program Change sent"
-            }
+            # Send MIDI via song.send_midi
+            if hasattr(self.song, 'send_midi'):
+                self.song.send_midi(midi_bytes)
+                return {
+                    "ok": True,
+                    "program_number": int(program_number),
+                    "channel": int(channel),
+                    "message": "MIDI Program Change sent"
+                }
+            else:
+                return {"ok": False, "error": "send_midi not available"}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 

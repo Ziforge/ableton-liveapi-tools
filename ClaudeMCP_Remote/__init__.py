@@ -618,17 +618,17 @@ class ClaudeMCP:
 
             # Clip Automation Envelopes
             elif action == 'get_clip_automation_envelope':
-                return self.tools.get_clip_automation_envelope(command.get('track_index', 0), command.get('clip_index', 0), command.get('param_name', ''))
+                return self.tools.get_clip_automation_envelope(command.get('track_index', 0), command.get('clip_index', 0), command.get('device_index', 0), command.get('param_index', 0))
             elif action == 'create_automation_envelope':
-                return self.tools.create_automation_envelope(command.get('track_index', 0), command.get('clip_index', 0), command.get('parameter_object'))
+                return self.tools.create_automation_envelope(command.get('track_index', 0), command.get('clip_index', 0), command.get('device_index', 0), command.get('param_index', 0))
             elif action == 'clear_automation_envelope':
-                return self.tools.clear_automation_envelope(command.get('track_index', 0), command.get('clip_index', 0), command.get('param_name', ''))
+                return self.tools.clear_automation_envelope(command.get('track_index', 0), command.get('clip_index', 0), command.get('device_index', 0), command.get('param_index', 0))
             elif action == 'insert_automation_step':
-                return self.tools.insert_automation_step(command.get('track_index', 0), command.get('clip_index', 0), command.get('param_name', ''), command.get('time', 0.0), command.get('value', 0.0))
+                return self.tools.insert_automation_step(command.get('track_index', 0), command.get('clip_index', 0), command.get('device_index', 0), command.get('param_index', 0), command.get('time', 0.0), command.get('value', 0.0))
             elif action == 'remove_automation_step':
-                return self.tools.remove_automation_step(command.get('track_index', 0), command.get('clip_index', 0), command.get('param_name', ''), command.get('time', 0.0))
+                return self.tools.remove_automation_step(command.get('track_index', 0), command.get('clip_index', 0), command.get('device_index', 0), command.get('param_index', 0), command.get('time', 0.0))
             elif action == 'get_automation_envelope_values':
-                return self.tools.get_automation_envelope_values(command.get('track_index', 0), command.get('clip_index', 0), command.get('param_name', ''))
+                return self.tools.get_automation_envelope_values(command.get('track_index', 0), command.get('clip_index', 0), command.get('device_index', 0), command.get('param_index', 0))
 
             # Track Freeze/Flatten
             elif action == 'freeze_track':

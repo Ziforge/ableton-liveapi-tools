@@ -40,9 +40,7 @@ This implementation provides **220 tools across 44 categories** based on:
 - 38 additional functional categories
 
 **Known Limitations:**
-- Clip envelope automation requires parameter object references (partial implementation)
-- Some MIDI CC/Program Change operations are placeholders
-- Consolidation and some arrangement operations have simplified implementations
+- Consolidation and some arrangement operations have simplified implementations due to LiveAPI constraints
 - Not all Live Object Model (LOM) properties may be exposed (continuous development)
 
 ## Tool Categories

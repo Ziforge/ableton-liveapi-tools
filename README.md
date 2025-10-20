@@ -2,9 +2,11 @@
 
 A comprehensive Python Remote Script for Ableton Live that exposes **120 LiveAPI tools** via a simple TCP socket interface. Control every aspect of your Ableton Live session programmatically - from playback and recording to tracks, clips, devices, and MIDI notes.
 
+[![CI](https://github.com/Ziforge/ableton-liveapi-tools/workflows/CI/badge.svg)](https://github.com/Ziforge/ableton-liveapi-tools/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Ableton Live](https://img.shields.io/badge/Ableton%20Live-11%2F12-blue.svg)](https://www.ableton.com/)
 [![Python](https://img.shields.io/badge/Python-2.7%2F3.x-green.svg)](https://www.python.org/)
+[![Release](https://img.shields.io/github/v/release/Ziforge/ableton-liveapi-tools)](https://github.com/Ziforge/ableton-liveapi-tools/releases)
 
 ## Features
 

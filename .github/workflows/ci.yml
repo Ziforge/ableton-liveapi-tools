@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Check file structure
+      run: |
+        echo "Checking required files..."
+        test -f ClaudeMCP_Remote/__init__.py || (echo "Missing ClaudeMCP_Remote/__init__.py" && exit 1)
+        test -f ClaudeMCP_Remote/liveapi_tools.py || (echo "Missing ClaudeMCP_Remote/liveapi_tools.py" && exit 1)
+        test -f install.sh || (echo "Missing install.sh" && exit 1)
+        test -f README.md || (echo "Missing README.md" && exit 1)
+        test -f LICENSE || (echo "Missing LICENSE" && exit 1)
+        echo "✓ All required files present"
+
+    - name: Validate Python syntax (Python 2.7 compatibility check)
+      run: |
+        echo "Checking Python 2.7 syntax compatibility..."
+        # Check for common Python 3 syntax that breaks Python 2.7
+        ! grep -r "f'" ClaudeMCP_Remote/ || (echo "Found f-strings (not compatible with Python 2.7)" && exit 1)
+        ! grep -r 'f"' ClaudeMCP_Remote/ || (echo "Found f-strings (not compatible with Python 2.7)" && exit 1)
+        echo "✓ No obvious Python 2.7 incompatibilities found"
+
+    - name: Check for common issues
+      run: |
+        echo "Checking for common issues..."
+        # Check that socket port is consistent
+        grep -q "9004" ClaudeMCP_Remote/__init__.py || (echo "Socket port 9004 not found in __init__.py" && exit 1)
+        echo "✓ Configuration checks passed"
+
+    - name: Validate documentation
+      run: |
+        echo "Checking documentation..."
+        test -f docs/ARCHITECTURE.md || (echo "Missing docs/ARCHITECTURE.md" && exit 1)
+        test -d examples || (echo "Missing examples directory" && exit 1)
+        echo "✓ Documentation structure valid"
+
+  shellcheck:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Run shellcheck on install.sh
+      run: |
+        sudo apt-get install -y shellcheck
+        shellcheck install.sh || echo "Shellcheck warnings found (non-blocking)"

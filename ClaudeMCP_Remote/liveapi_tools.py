@@ -1628,7 +1628,7 @@ class LiveAPITools:
                         "max": float(param.max)
                     }
 
-            return {"ok": False, "error": f"Parameter '{param_name}' not found"}
+            return {"ok": False, "error": "Parameter '" + str(param_name) + "' not found"}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -1653,7 +1653,7 @@ class LiveAPITools:
                         "value": float(param.value)
                     }
 
-            return {"ok": False, "error": f"Parameter '{param_name}' not found"}
+            return {"ok": False, "error": "Parameter '" + str(param_name) + "' not found"}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -1846,7 +1846,7 @@ class LiveAPITools:
                 sends.append({
                     "index": i,
                     "value": float(send.value),
-                    "name": str(send.name) if hasattr(send, 'name') else f"Send {chr(65+i)}"
+                    "name": str(send.name) if hasattr(send, 'name') else "Send " + chr(65+i)
                 })
 
             return {

@@ -277,27 +277,6 @@ See `examples/cv_tools_control.py` for a complete working example.
 
 For detailed M4L integration documentation, see [MAX4LIVE_INTEGRATION.md](MAX4LIVE_INTEGRATION.md).
 
-## Comparison with Similar Projects
-
-### vs. ahujasid/ableton-mcp
-
-[ahujasid/ableton-mcp](https://github.com/ahujasid/ableton-mcp) is another MCP-based Ableton control project. **Verifiable differences:**
-
-| Feature | This Project | ahujasid/ableton-mcp |
-|---------|-------------|---------------------|
-| **Tool Count** | 220 tools | ~40 tools |
-| **Architecture** | Python Remote Script (native) | AbletonJS + Node.js bridge |
-| **Transport** | Direct TCP socket (port 9004) | HTTP/WebSocket via AbletonJS |
-| **Live 12 Features** | Take lanes, display values ✅ | Not specified |
-| **Thread Safety** | Queue-based (main thread execution) | AbletonJS handles threading |
-| **Deployment** | Single Python script | Node.js + AbletonJS dependencies |
-
-**Different Design Philosophies:**
-- **This project**: Maximize API coverage (220 tools), native Python, no external dependencies
-- **ahujasid/ableton-mcp**: Minimal viable toolset (~40 tools), JavaScript ecosystem integration
-
-Both are valid approaches for different use cases. This project prioritizes breadth of API coverage, while ahujasid/ableton-mcp prioritizes integration with JavaScript/Node.js workflows.
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -316,7 +295,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Built with [Ableton Live's Python Remote Script API](https://docs.cycling74.com/max8/vignettes/live_api_overview)
 - Designed for use with [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
-- Inspired by [ahujasid/ableton-mcp](https://github.com/ahujasid/ableton-mcp)
 - Created by Claude Code
 
 ## Support

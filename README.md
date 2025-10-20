@@ -151,7 +151,7 @@ def send_command(action, **params):
 
 # Set tempo
 result = send_command('set_tempo', bpm=128)
-print(f"Tempo: {result['bpm']} BPM")
+print("Tempo: " + str(result['bpm']) + " BPM")
 
 # Create a MIDI track
 result = send_command('create_midi_track', name='Bass')
@@ -225,7 +225,7 @@ This design ensures all LiveAPI calls happen on Ableton's main thread, preventin
 ## Use Cases
 
 - **Algorithmic Composition** - Generate music with code
-- **AI Music Production** - Control Ableton with Claude, GPT, or other LLMs
+- **AI Music Production** - Control Ableton with LLMs and AI agents
 - **Live Coding** - Real-time music performance
 - **Automation** - Batch processing and workflow automation
 - **Integration** - Connect Ableton to other software/hardware

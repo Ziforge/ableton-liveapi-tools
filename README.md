@@ -43,8 +43,8 @@ A comprehensive Python Remote Script for Ableton Live that exposes **120 LiveAPI
 
 1. **Clone this repository:**
    ```bash
-   git clone https://github.com/yourusername/ableton-mcp-remote.git
-   cd ableton-mcp-remote
+   git clone https://github.com/Ziforge/ableton-liveapi-tools.git
+   cd ableton-liveapi-tools
    ```
 
 2. **Run the installation script:**
@@ -196,8 +196,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/ableton-mcp-remote/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/ableton-mcp-remote/discussions)
+- **Issues:** [GitHub Issues](https://github.com/Ziforge/ableton-liveapi-tools/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/Ziforge/ableton-liveapi-tools/discussions)
 
 ## Roadmap
 

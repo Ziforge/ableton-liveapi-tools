@@ -4,6 +4,51 @@
 
 This document describes how to interact with Max for Live (M4L) devices, including CV Tools, through the ClaudeMCP Remote Script.
 
+**The Remote Script includes 5 M4L-specific tools** that provide simplified access to Max for Live devices using parameter names instead of indices.
+
+## How It Works: Dynamic Parameter Discovery
+
+**Important:** The M4L implementation is **generic and future-proof** - it works with ANY Max for Live device without hardcoded parameter knowledge.
+
+### No Hardcoded Device Database Required
+
+The implementation uses **runtime introspection** to discover devices and parameters dynamically:
+
+✅ **Works with ANY M4L device:**
+- Built-in Ableton M4L devices (CV LFO, CV Shaper, Envelope Follower, etc.)
+- Third-party M4L devices from Max for Live packs
+- Custom user-created M4L devices
+- Future M4L devices Ableton adds in updates
+
+✅ **Only hardcoded knowledge:**
+- 3 M4L device class names from LiveAPI spec:
+  - `MxDeviceAudioEffect` - M4L audio effects
+  - `MxDeviceMidiEffect` - M4L MIDI effects
+  - `MxDeviceInstrument` - M4L instruments
+
+✅ **Parameter discovery:**
+- Uses `device.parameters` to enumerate all parameters at runtime
+- User/client provides parameter names (e.g., "Rate", "Depth", "Attack")
+- No maintenance needed when new M4L devices are released
+
+### Example: How set_device_param_by_name Works
+
+```python
+def set_device_param_by_name(self, track_index, device_index, param_name, value):
+    """Set device parameter by name (useful for M4L devices)"""
+    device = track.devices[device_index]
+
+    # Runtime discovery - iterate through ALL parameters
+    for i, param in enumerate(device.parameters):
+        if str(param.name) == param_name:  # User provides the name
+            param.value = float(value)
+            return {"ok": True, "param_name": param_name, "value": float(param.value)}
+
+    return {"ok": False, "error": "Parameter not found"}
+```
+
+**Key insight:** No hardcoded parameter lists - discovers parameters dynamically using LiveAPI introspection.
+
 ## Max for Live Device Detection
 
 Max for Live devices are identified by their `class_name`:
@@ -11,53 +56,48 @@ Max for Live devices are identified by their `class_name`:
 - **M4L MIDI Effects**: `class_name == "MxDeviceMidiEffect"`
 - **M4L Instruments**: `class_name == "MxDeviceInstrument"`
 
-## Accessing M4L Device Parameters
+## Quick Start Example
 
-All M4L device parameters are accessible through the standard device API:
-
-### Example: Controlling CV Tools LFO
+**Simple workflow using M4L-specific tools:**
 
 ```python
 import socket
 import json
 
-def send_command(command):
+def send_command(action, **params):
+    """Send command to Ableton via port 9004"""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('localhost', 9004))
-    sock.sendall(json.dumps(command).encode() + b'\n')
-    response = sock.recv(4096).decode()
+    sock.connect(('127.0.0.1', 9004))
+
+    command = {'action': action, **params}
+    message = json.dumps(command) + '\n'
+    sock.sendall(message.encode('utf-8'))
+
+    response = b''
+    while b'\n' not in response:
+        response += sock.recv(4096)
+
     sock.close()
-    return json.loads(response)
+    return json.loads(response.decode('utf-8'))
 
-# 1. Find CV Tools device on track
-response = send_command({
-    "tool": "get_track_devices",
-    "track_index": 0
-})
+# 1. Find CV LFO device using CV Tools filter
+cv_devices = send_command('get_cv_tools_devices', track_index=0)
+lfo = cv_devices['cv_devices'][0]  # First CV device
+device_index = lfo['index']
 
-# Look for CV LFO device
-for i, device in enumerate(response['devices']):
-    if 'CV' in device['name'] and 'LFO' in device['name']:
-        device_index = i
-        break
+# 2. Set LFO rate by parameter name (no index lookup needed!)
+send_command('set_device_param_by_name',
+    track_index=0,
+    device_index=device_index,
+    param_name='Rate',
+    value=0.5)
 
-# 2. Get all parameters of the CV LFO
-response = send_command({
-    "tool": "get_device_parameters",
-    "track_index": 0,
-    "device_index": device_index
-})
-
-# 3. Set LFO rate parameter (find parameter by name)
-for i, param in enumerate(response['parameters']):
-    if param['name'] == 'Rate':
-        send_command({
-            "tool": "set_device_param",
-            "track_index": 0,
-            "device_index": device_index,
-            "param_index": i,
-            "value": 0.5  # Set to middle value
-        })
+# 3. Get current rate value
+rate = send_command('get_m4l_param_by_name',
+    track_index=0,
+    device_index=device_index,
+    param_name='Rate')
+print("LFO Rate:", rate['value'])
 ```
 
 ## CV Tools Specific Devices
@@ -73,13 +113,34 @@ Common CV Tools devices and their purposes:
 | CV Triggers | Generate triggers | Rate, Probability |
 | CV Utility | CV routing/mixing | Mix, Offset, Scale |
 
-## Proposed New Tools for M4L
+## Available M4L Tools (5 Tools)
 
-### 1. Detect Max for Live Devices
+### 1. is_max_device - Check if Device is M4L
 
 ```json
 {
-  "tool": "get_m4l_devices",
+  "action": "is_max_device",
+  "track_index": 0,
+  "device_index": 2
+}
+```
+
+Response:
+```json
+{
+  "ok": true,
+  "is_m4l": true,
+  "class_name": "MxDeviceAudioEffect",
+  "class_display_name": "Max Audio Effect",
+  "device_name": "CV LFO"
+}
+```
+
+### 2. get_m4l_devices - Get All M4L Devices on Track
+
+```json
+{
+  "action": "get_m4l_devices",
   "track_index": 0
 }
 ```
@@ -88,23 +149,27 @@ Response:
 ```json
 {
   "ok": true,
+  "track_index": 0,
+  "track_name": "1 Audio",
   "devices": [
     {
       "index": 2,
       "name": "CV LFO",
       "class_name": "MxDeviceAudioEffect",
       "type": "audio_effect",
-      "is_m4l": true
+      "is_active": true,
+      "num_parameters": 12
     }
-  ]
+  ],
+  "count": 1
 }
 ```
 
-### 2. Get M4L Device Parameter by Name
+### 3. get_m4l_param_by_name - Get Parameter by Name
 
 ```json
 {
-  "tool": "get_m4l_param_by_name",
+  "action": "get_m4l_param_by_name",
   "track_index": 0,
   "device_index": 2,
   "param_name": "Rate"
@@ -119,15 +184,18 @@ Response:
   "name": "Rate",
   "value": 0.5,
   "min": 0.0,
-  "max": 1.0
+  "max": 1.0,
+  "is_enabled": true
 }
 ```
 
-### 3. Set M4L Parameter by Name
+### 4. set_device_param_by_name - Set Parameter by Name
+
+**Works with ANY device, but especially useful for M4L devices:**
 
 ```json
 {
-  "tool": "set_m4l_param_by_name",
+  "action": "set_device_param_by_name",
   "track_index": 0,
   "device_index": 2,
   "param_name": "Rate",
@@ -135,11 +203,25 @@ Response:
 }
 ```
 
-### 4. Get CV Mappings (Live 11.1+)
+Response:
+```json
+{
+  "ok": true,
+  "track_index": 0,
+  "device_index": 2,
+  "param_name": "Rate",
+  "param_index": 5,
+  "value": 0.75
+}
+```
+
+### 5. get_cv_tools_devices - Get CV Tools Devices
+
+**Convenience filter for CV Tools pack devices:**
 
 ```json
 {
-  "tool": "get_cv_mappings",
+  "action": "get_cv_tools_devices",
   "track_index": 0
 }
 ```
@@ -148,199 +230,119 @@ Response:
 ```json
 {
   "ok": true,
-  "mappings": [
+  "track_index": 0,
+  "track_name": "1 Audio",
+  "cv_devices": [
     {
-      "source_device": "CV LFO",
-      "source_param": "Output",
-      "destination_device": "Operator",
-      "destination_param": "Filter Freq",
-      "amount": 0.5
+      "index": 2,
+      "name": "CV LFO",
+      "class_name": "MxDeviceAudioEffect",
+      "is_active": true,
+      "num_parameters": 12
+    },
+    {
+      "index": 3,
+      "name": "CV Shaper",
+      "class_name": "MxDeviceAudioEffect",
+      "is_active": true,
+      "num_parameters": 8
     }
-  ]
+  ],
+  "count": 2
 }
 ```
 
-## Current Workaround
+## Standard Device Tools (Work with M4L too)
 
-Until M4L-specific tools are added, you can interact with M4L devices using existing tools:
+You can also use standard device tools with M4L devices:
 
-1. **List devices**: Use `get_track_devices` to find M4L devices
-2. **Get parameters**: Use `get_device_parameters` to list all params
-3. **Set parameters**: Use `set_device_param` with param index
-4. **Parameter by name**: Use `get_device_parameter_by_name` (if available)
+1. **List devices**: `get_track_devices` - Returns all devices including M4L
+2. **Get parameters**: `get_device_parameters` - Lists all parameters with indices
+3. **Set parameters**: `set_device_param` - Set by parameter index
+4. **Get device info**: `get_device_info` - Get device details
 
 ## Example: Complete CV LFO Control
 
+**Using M4L-specific tools for simplified access:**
+
 ```python
 #!/usr/bin/env python
-"""Control CV Tools LFO device"""
+"""Control CV Tools LFO device using M4L-specific tools"""
 
 import socket
 import json
 import time
 
-class AbletonController:
-    def __init__(self, host='localhost', port=9004):
-        self.host = host
-        self.port = port
+def send_command(action, **params):
+    """Send command to Ableton via port 9004"""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect(('127.0.0.1', 9004))
 
-    def send(self, command):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((self.host, self.port))
-        sock.sendall(json.dumps(command).encode() + b'\n')
+    command = {'action': action, **params}
+    message = json.dumps(command) + '\n'
+    sock.sendall(message.encode('utf-8'))
 
-        response = b''
-        while True:
-            chunk = sock.recv(4096)
-            if not chunk:
-                break
-            response += chunk
-            if b'\n' in chunk:
-                break
+    response = b''
+    while b'\n' not in response:
+        response += sock.recv(4096)
 
-        sock.close()
-        return json.loads(response.decode())
+    sock.close()
+    return json.loads(response.decode('utf-8'))
 
-    def find_device(self, track_index, device_name_contains):
-        """Find device by partial name match"""
-        result = self.send({
-            "tool": "get_track_devices",
-            "track_index": track_index
-        })
+# 1. Find all M4L devices on track 0
+result = send_command('get_m4l_devices', track_index=0)
+print("M4L devices on track 0:", result['devices'])
 
-        if not result.get('ok'):
-            return None
+# 2. Find CV Tools devices specifically
+cv_result = send_command('get_cv_tools_devices', track_index=0)
+if cv_result['count'] > 0:
+    lfo_device = cv_result['cv_devices'][0]
+    device_index = lfo_device['index']
+    print("Found CV LFO at device index:", device_index)
 
-        for i, device in enumerate(result['devices']):
-            if device_name_contains.lower() in device['name'].lower():
-                return i
-        return None
+    # 3. Get current Rate parameter value
+    rate_info = send_command('get_m4l_param_by_name',
+        track_index=0,
+        device_index=device_index,
+        param_name='Rate')
+    print("Current Rate:", rate_info)
 
-    def set_device_param_by_name(self, track_index, device_index, param_name, value):
-        """Set device parameter by name"""
-        # Get all parameters
-        params = self.send({
-            "tool": "get_device_parameters",
-            "track_index": track_index,
-            "device_index": device_index
-        })
-
-        if not params.get('ok'):
-            return params
-
-        # Find parameter by name
-        for i, param in enumerate(params['parameters']):
-            if param['name'] == param_name:
-                return self.send({
-                    "tool": "set_device_param",
-                    "track_index": track_index,
-                    "device_index": device_index,
-                    "param_index": i,
-                    "value": value
-                })
-
-        return {"ok": False, "error": f"Parameter '{param_name}' not found"}
-
-# Example usage
-controller = AbletonController()
-
-# Find CV LFO on track 0
-lfo_index = controller.find_device(0, "CV LFO")
-
-if lfo_index is not None:
-    print(f"Found CV LFO at device index {lfo_index}")
-
-    # Animate LFO rate
+    # 4. Animate LFO rate using parameter name (no index lookup needed!)
     for i in range(10):
         rate = i / 10.0
-        result = controller.set_device_param_by_name(0, lfo_index, "Rate", rate)
-        print(f"Set LFO rate to {rate}: {result}")
+        result = send_command('set_device_param_by_name',
+            track_index=0,
+            device_index=device_index,
+            param_name='Rate',
+            value=rate)
+        print("Set LFO rate to " + str(rate) + ": " + str(result['ok']))
         time.sleep(0.5)
 else:
-    print("CV LFO not found on track 0")
+    print("No CV Tools devices found on track 0")
 ```
 
-## Implementation Notes
+## Implementation Details
 
-### Adding M4L-Specific Tools
+### How Device Detection Works (ClaudeMCP_Remote/liveapi_tools.py:2164-2318)
 
-To add proper M4L support, we would extend `liveapi_tools.py` with:
+The implementation uses LiveAPI's device introspection:
 
 ```python
-def is_max_device(self, track_index, device_index):
-    """Check if device is a Max for Live device"""
-    try:
-        track = self.song.tracks[track_index]
-        device = track.devices[device_index]
+# M4L Device Detection
+m4l_classes = ['MxDeviceAudioEffect', 'MxDeviceMidiEffect', 'MxDeviceInstrument']
+is_m4l = device.class_name in m4l_classes
 
-        is_m4l = device.class_name in [
-            'MxDeviceAudioEffect',
-            'MxDeviceMidiEffect',
-            'MxDeviceInstrument'
-        ]
-
-        return {
-            "ok": True,
-            "is_m4l": is_m4l,
-            "class_name": str(device.class_name),
-            "class_display_name": str(device.class_display_name)
-        }
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
-
-def get_m4l_devices(self, track_index):
-    """Get all Max for Live devices on track"""
-    try:
-        track = self.song.tracks[track_index]
-        m4l_devices = []
-
-        for i, device in enumerate(track.devices):
-            if device.class_name in ['MxDeviceAudioEffect', 'MxDeviceMidiEffect', 'MxDeviceInstrument']:
-                m4l_devices.append({
-                    "index": i,
-                    "name": str(device.name),
-                    "class_name": str(device.class_name),
-                    "type": self._get_m4l_type(device.class_name),
-                    "is_active": device.is_active
-                })
-
-        return {
-            "ok": True,
-            "devices": m4l_devices,
-            "count": len(m4l_devices)
-        }
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
-
-def _get_m4l_type(self, class_name):
-    """Get M4L device type from class name"""
-    type_map = {
-        'MxDeviceAudioEffect': 'audio_effect',
-        'MxDeviceMidiEffect': 'midi_effect',
-        'MxDeviceInstrument': 'instrument'
-    }
-    return type_map.get(class_name, 'unknown')
-
-def set_device_param_by_name(self, track_index, device_index, param_name, value):
-    """Set device parameter by name (useful for M4L devices)"""
-    try:
-        track = self.song.tracks[track_index]
-        device = track.devices[device_index]
-
-        # Find parameter by name
-        for param in device.parameters:
-            if str(param.name) == param_name:
-                param.value = float(value)
-                return {
-                    "ok": True,
-                    "param_name": param_name,
-                    "value": float(param.value)
-                }
-
-        return {"ok": False, "error": f"Parameter '{param_name}' not found"}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+# Parameter Discovery (Runtime)
+for i, param in enumerate(device.parameters):
+    if str(param.name) == param_name:  # User-provided name
+        param.value = float(value)  # Set value directly
 ```
+
+**Key advantages:**
+- No hardcoded parameter databases
+- Works with all M4L devices (built-in, third-party, custom)
+- No maintenance when new devices are added
+- User/client provides parameter names from UI
 
 ## Resources
 
@@ -348,12 +350,25 @@ def set_device_param_by_name(self, track_index, device_index, param_name, value)
 - [Max for Live API Reference](https://docs.cycling74.com/max8/vignettes/live_api_overview)
 - [CV Tools Documentation](https://www.ableton.com/en/packs/cv-tools/)
 
-## Next Steps
+## Summary
 
-To fully support CV Tools and M4L devices:
+The ClaudeMCP Remote Script provides **complete M4L support** through 5 specialized tools:
 
-1. Add M4L device detection tools
-2. Add parameter-by-name accessors
-3. Add CV modulation mapping tools (Live 11.1+)
-4. Create M4L-specific example scripts
-5. Document common CV Tools workflows
+✅ **Implemented (5 tools):**
+1. `is_max_device` - Check if device is M4L
+2. `get_m4l_devices` - Get all M4L devices on track
+3. `get_m4l_param_by_name` - Get parameter by name
+4. `set_device_param_by_name` - Set parameter by name (works with ANY device)
+5. `get_cv_tools_devices` - Get CV Tools pack devices
+
+✅ **Generic implementation:**
+- Works with ALL M4L devices (built-in, third-party, custom, future)
+- No hardcoded parameter databases
+- Runtime parameter discovery using LiveAPI introspection
+
+## Potential Future Enhancements
+
+- CV modulation mapping introspection (Live 11.1+ API if available)
+- M4L device preset loading/saving
+- M4L patch file (.amxd) metadata reading
+- Additional CV Tools workflow examples

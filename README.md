@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/ziforge-ableton-liveapi-tools-badge.png)](https://mseep.ai/app/ziforge-ableton-liveapi-tools)
+
 # ClaudeMCP Remote Script for Ableton Live
 
 A comprehensive Python Remote Script for Ableton Live that exposes **220 LiveAPI tools** via a simple TCP socket interface. Control every aspect of your Ableton Live session programmatically - from playback and recording to tracks, clips, devices, MIDI notes, and Max for Live / CV Tools devices.

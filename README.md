@@ -289,7 +289,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the **PolyForm Noncommercial License 1.0.0** - see the [LICENSE](LICENSE) file for details.
 
-**License Change Notice (January 2025):** This project changed from MIT License to PolyForm Noncommercial License. Versions obtained prior to this change remain available under the MIT License. The new license permits personal, educational, and non-profit use, but prohibits commercial use.
+This license permits personal, educational, and non-profit use only. **Commercial use is prohibited.**
 
 ## Acknowledgments
 

@@ -295,7 +295,7 @@ This is a strong copyleft license that requires anyone who distributes your code
 
 - Built with [Ableton Live's Python Remote Script API](https://docs.cycling74.com/max8/vignettes/live_api_overview)
 - Designed for use with [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
-- Created by Claude Code
+- Created with assistance from Claude Code
 
 ## Support
 

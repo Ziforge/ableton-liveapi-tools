@@ -3,7 +3,7 @@
 A comprehensive Python Remote Script for Ableton Live that exposes **220 LiveAPI tools** via a simple TCP socket interface. Control every aspect of your Ableton Live session programmatically - from playback and recording to tracks, clips, devices, MIDI notes, and Max for Live / CV Tools devices.
 
 [![CI](https://github.com/Ziforge/ableton-liveapi-tools/workflows/CI/badge.svg)](https://github.com/Ziforge/ableton-liveapi-tools/actions)
-[![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](https://polyformproject.org/licenses/noncommercial/1.0.0)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Ableton Live](https://img.shields.io/badge/Ableton%20Live-11%2F12-blue.svg)](https://www.ableton.com/)
 [![Python](https://img.shields.io/badge/Python-2.7%2F3.x-green.svg)](https://www.python.org/)
 [![Release](https://img.shields.io/github/v/release/Ziforge/ableton-liveapi-tools)](https://github.com/Ziforge/ableton-liveapi-tools/releases)
@@ -287,9 +287,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the **PolyForm Noncommercial License 1.0.0** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details.
 
-This license permits personal, educational, and non-profit use only. **Commercial use is prohibited.**
+This is a strong copyleft license that requires anyone who distributes your code or a derivative work to make the source available under the same terms. This protects your work while allowing open collaboration.
 
 ## Acknowledgments
 

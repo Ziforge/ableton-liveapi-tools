@@ -1477,32 +1477,15 @@ class LiveAPITools:
 
     def get_groove_amount(self, track_index):
         """Get track groove amount"""
-        try:
-            if track_index < 0 or track_index >= len(self.song.tracks):
-                return {"ok": False, "error": "Invalid track index"}
-
-            track = self.song.tracks[track_index]
-            if hasattr(track, 'groove_amount'):
-                return {"ok": True, "groove_amount": float(track.groove_amount)}
-            else:
-                return {"ok": False, "error": "Track does not support groove"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        return {"ok": False, "error": "Track groove amount is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). There is no Track.groove_amount; groove is per-clip via Clip.groove (see set_clip_groove_amount)."}
 
     def set_groove_amount(self, track_index, amount):
         """Set track groove amount (0.0-1.0)"""
-        try:
-            if track_index < 0 or track_index >= len(self.song.tracks):
-                return {"ok": False, "error": "Invalid track index"}
-
-            track = self.song.tracks[track_index]
-            if hasattr(track, 'groove_amount'):
-                track.groove_amount = float(amount)
-                return {"ok": True, "groove_amount": float(track.groove_amount)}
-            else:
-                return {"ok": False, "error": "Track does not support groove"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        return {"ok": False, "error": "Track groove amount is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). There is no Track.groove_amount; groove is per-clip via Clip.groove (see set_clip_groove_amount)."}
 
     # ========================================================================
     # MONITORING & INPUT
@@ -2877,123 +2860,27 @@ class LiveAPITools:
 
     def get_clip_follow_action(self, track_index, clip_index):
         """Get clip follow action settings"""
-        try:
-            if track_index < 0 or track_index >= len(self.song.tracks):
-                return {"ok": False, "error": "Invalid track index"}
-
-            track = self.song.tracks[track_index]
-            if clip_index < 0 or clip_index >= len(track.clip_slots):
-                return {"ok": False, "error": "Invalid clip index"}
-
-            clip_slot = track.clip_slots[clip_index]
-            if not clip_slot.has_clip:
-                return {"ok": False, "error": "No clip in slot"}
-
-            clip = clip_slot.clip
-
-            action_names = {
-                0: "Stop",
-                1: "Play Again",
-                2: "Previous",
-                3: "Next",
-                4: "First",
-                5: "Last",
-                6: "Any",
-                7: "Other",
-                8: "Jump"
-            }
-
-            result = {
-                "ok": True,
-                "track_index": track_index,
-                "clip_index": clip_index
-            }
-
-            if hasattr(clip, 'follow_action_A'):
-                result["follow_action_A"] = int(clip.follow_action_A)
-                result["follow_action_A_name"] = action_names.get(int(clip.follow_action_A), "Unknown")
-
-            if hasattr(clip, 'follow_action_B'):
-                result["follow_action_B"] = int(clip.follow_action_B)
-                result["follow_action_B_name"] = action_names.get(int(clip.follow_action_B), "Unknown")
-
-            if hasattr(clip, 'follow_action_time'):
-                result["follow_action_time"] = float(clip.follow_action_time)
-
-            if hasattr(clip, 'follow_action_chance_A'):
-                result["follow_action_chance_A"] = float(clip.follow_action_chance_A)
-
-            if hasattr(clip, 'follow_action_chance_B'):
-                result["follow_action_chance_B"] = float(clip.follow_action_chance_B)
-
-            return result
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        if clip_index < 0 or clip_index >= len(self.song.tracks[track_index].clip_slots):
+            return {"ok": False, "error": "Invalid clip index"}
+        return {"ok": False, "error": "Clip follow actions are not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). Clip has no follow_action_* members."}
 
     def set_clip_follow_action(self, track_index, clip_index, action_A, action_B, chance_A=1.0):
         """Set clip follow action (0-8: Stop, Play Again, Previous, Next, First, Last, Any, Other, Jump)"""
-        try:
-            if track_index < 0 or track_index >= len(self.song.tracks):
-                return {"ok": False, "error": "Invalid track index"}
-
-            track = self.song.tracks[track_index]
-            if clip_index < 0 or clip_index >= len(track.clip_slots):
-                return {"ok": False, "error": "Invalid clip index"}
-
-            clip_slot = track.clip_slots[clip_index]
-            if not clip_slot.has_clip:
-                return {"ok": False, "error": "No clip in slot"}
-
-            clip = clip_slot.clip
-
-            if hasattr(clip, 'follow_action_A'):
-                clip.follow_action_A = int(max(0, min(8, action_A)))
-
-            if hasattr(clip, 'follow_action_B'):
-                clip.follow_action_B = int(max(0, min(8, action_B)))
-
-            if hasattr(clip, 'follow_action_chance_A'):
-                clip.follow_action_chance_A = float(max(0.0, min(1.0, chance_A)))
-
-            if hasattr(clip, 'follow_action_chance_B'):
-                clip.follow_action_chance_B = 1.0 - float(max(0.0, min(1.0, chance_A)))
-
-            return {
-                "ok": True,
-                "track_index": track_index,
-                "clip_index": clip_index,
-                "follow_action_A": int(clip.follow_action_A) if hasattr(clip, 'follow_action_A') else None,
-                "follow_action_B": int(clip.follow_action_B) if hasattr(clip, 'follow_action_B') else None
-            }
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        if clip_index < 0 or clip_index >= len(self.song.tracks[track_index].clip_slots):
+            return {"ok": False, "error": "Invalid clip index"}
+        return {"ok": False, "error": "Clip follow actions are not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). Clip has no follow_action_* members."}
 
     def set_follow_action_time(self, track_index, clip_index, time_in_bars):
         """Set follow action time in bars"""
-        try:
-            if track_index < 0 or track_index >= len(self.song.tracks):
-                return {"ok": False, "error": "Invalid track index"}
-
-            track = self.song.tracks[track_index]
-            if clip_index < 0 or clip_index >= len(track.clip_slots):
-                return {"ok": False, "error": "Invalid clip index"}
-
-            clip_slot = track.clip_slots[clip_index]
-            if not clip_slot.has_clip:
-                return {"ok": False, "error": "No clip in slot"}
-
-            clip = clip_slot.clip
-
-            if hasattr(clip, 'follow_action_time'):
-                clip.follow_action_time = float(max(0.0, time_in_bars))
-                return {
-                    "ok": True,
-                    "follow_action_time": float(clip.follow_action_time)
-                }
-            else:
-                return {"ok": False, "error": "Follow action time not available"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        if clip_index < 0 or clip_index >= len(self.song.tracks[track_index].clip_slots):
+            return {"ok": False, "error": "Invalid clip index"}
+        return {"ok": False, "error": "Clip follow actions are not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). Clip has no follow_action_* members."}
 
     # ========================================================================
     # CROSSFADER
@@ -3688,67 +3575,34 @@ class LiveAPITools:
 
     def freeze_track(self, track_index):
         """Freeze a track to reduce CPU usage"""
-        try:
-            track = self.song.tracks[track_index]
-
-            if hasattr(track, 'freeze_available') and track.freeze_available:
-                if hasattr(track, 'freeze_state'):
-                    # 0 = no freeze, 1 = frozen, 2 = frozen with tails
-                    track.freeze_state = 1
-                    return {
-                        "ok": True,
-                        "track_index": track_index,
-                        "frozen": True
-                    }
-                else:
-                    return {"ok": False, "error": "Freeze state not available"}
-            else:
-                return {"ok": False, "error": "Track cannot be frozen"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        return {"ok": False, "error": "Track freeze is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). Only read-only Track.is_frozen / Track.can_be_frozen exist; there is no method to trigger a freeze."}
 
     def unfreeze_track(self, track_index):
         """Unfreeze a frozen track"""
-        try:
-            track = self.song.tracks[track_index]
-
-            if hasattr(track, 'freeze_state'):
-                track.freeze_state = 0
-                return {
-                    "ok": True,
-                    "track_index": track_index,
-                    "frozen": False
-                }
-            else:
-                return {"ok": False, "error": "Freeze state not available"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        return {"ok": False, "error": "Track unfreeze is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). Only read-only Track.is_frozen / Track.can_be_frozen exist; there is no method to trigger an unfreeze."}
 
     def flatten_track(self, track_index):
         """Flatten a frozen track (converts to audio)"""
-        try:
-            track = self.song.tracks[track_index]
-
-            if hasattr(track, 'flatten'):
-                track.flatten()
-                return {
-                    "ok": True,
-                    "track_index": track_index,
-                    "message": "Track flattened"
-                }
-            else:
-                return {"ok": False, "error": "Flatten not available (track must be frozen first)"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        return {"ok": False, "error": "Track flatten is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). There is no Track.flatten()."}
 
     # ========================================================================
     # CLIP FADE IN/OUT (4 tools)
     # ========================================================================
 
     def get_clip_fade_in(self, track_index, clip_index):
-        """Get clip fade in time"""
+        """Get clip fade in time (audio clips; lives on the clip's Sample)."""
         try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
             track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
             clip_slot = track.clip_slots[clip_index]
 
             if not clip_slot.has_clip:
@@ -3756,20 +3610,24 @@ class LiveAPITools:
 
             clip = clip_slot.clip
 
-            if hasattr(clip, 'fade_in_time'):
+            if hasattr(clip, 'sample') and clip.sample is not None and hasattr(clip.sample, 'sample_env_fade_in'):
                 return {
                     "ok": True,
-                    "fade_in_time": float(clip.fade_in_time)
+                    "fade_in_time": float(clip.sample.sample_env_fade_in)
                 }
             else:
-                return {"ok": False, "error": "Fade in not available (audio clips only)"}
+                return {"ok": False, "error": "fades are on the clip's Sample (audio clips only); not present here."}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
     def set_clip_fade_in(self, track_index, clip_index, fade_time):
-        """Set clip fade in time"""
+        """Set clip fade in time (audio clips; lives on the clip's Sample)."""
         try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
             track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
             clip_slot = track.clip_slots[clip_index]
 
             if not clip_slot.has_clip:
@@ -3777,21 +3635,25 @@ class LiveAPITools:
 
             clip = clip_slot.clip
 
-            if hasattr(clip, 'fade_in_time'):
-                clip.fade_in_time = float(fade_time)
+            if hasattr(clip, 'sample') and clip.sample is not None and hasattr(clip.sample, 'sample_env_fade_in'):
+                clip.sample.sample_env_fade_in = float(fade_time)
                 return {
                     "ok": True,
-                    "fade_in_time": float(clip.fade_in_time)
+                    "fade_in_time": float(clip.sample.sample_env_fade_in)
                 }
             else:
-                return {"ok": False, "error": "Fade in not available (audio clips only)"}
+                return {"ok": False, "error": "fades are on the clip's Sample (audio clips only); not present here."}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
     def get_clip_fade_out(self, track_index, clip_index):
-        """Get clip fade out time"""
+        """Get clip fade out time (audio clips; lives on the clip's Sample)."""
         try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
             track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
             clip_slot = track.clip_slots[clip_index]
 
             if not clip_slot.has_clip:
@@ -3799,20 +3661,24 @@ class LiveAPITools:
 
             clip = clip_slot.clip
 
-            if hasattr(clip, 'fade_out_time'):
+            if hasattr(clip, 'sample') and clip.sample is not None and hasattr(clip.sample, 'sample_env_fade_out'):
                 return {
                     "ok": True,
-                    "fade_out_time": float(clip.fade_out_time)
+                    "fade_out_time": float(clip.sample.sample_env_fade_out)
                 }
             else:
-                return {"ok": False, "error": "Fade out not available (audio clips only)"}
+                return {"ok": False, "error": "fades are on the clip's Sample (audio clips only); not present here."}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
     def set_clip_fade_out(self, track_index, clip_index, fade_time):
-        """Set clip fade out time"""
+        """Set clip fade out time (audio clips; lives on the clip's Sample)."""
         try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
             track = self.song.tracks[track_index]
+            if clip_index < 0 or clip_index >= len(track.clip_slots):
+                return {"ok": False, "error": "Invalid clip index"}
             clip_slot = track.clip_slots[clip_index]
 
             if not clip_slot.has_clip:
@@ -3820,14 +3686,14 @@ class LiveAPITools:
 
             clip = clip_slot.clip
 
-            if hasattr(clip, 'fade_out_time'):
-                clip.fade_out_time = float(fade_time)
+            if hasattr(clip, 'sample') and clip.sample is not None and hasattr(clip.sample, 'sample_env_fade_out'):
+                clip.sample.sample_env_fade_out = float(fade_time)
                 return {
                     "ok": True,
-                    "fade_out_time": float(clip.fade_out_time)
+                    "fade_out_time": float(clip.sample.sample_env_fade_out)
                 }
             else:
-                return {"ok": False, "error": "Fade out not available (audio clips only)"}
+                return {"ok": False, "error": "fades are on the clip's Sample (audio clips only); not present here."}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -3872,34 +3738,15 @@ class LiveAPITools:
 
     def get_track_annotation(self, track_index):
         """Get track annotation text"""
-        try:
-            track = self.song.tracks[track_index]
-
-            if hasattr(track, 'annotation'):
-                return {
-                    "ok": True,
-                    "annotation": str(track.annotation)
-                }
-            else:
-                return {"ok": False, "error": "Track annotation not available"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        return {"ok": False, "error": "Track annotation is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). There is no Track.annotation."}
 
     def set_track_annotation(self, track_index, annotation_text):
         """Set track annotation text"""
-        try:
-            track = self.song.tracks[track_index]
-
-            if hasattr(track, 'annotation'):
-                track.annotation = str(annotation_text)
-                return {
-                    "ok": True,
-                    "annotation": str(track.annotation)
-                }
-            else:
-                return {"ok": False, "error": "Track annotation not available"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        return {"ok": False, "error": "Track annotation is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). There is no Track.annotation."}
 
     # ========================================================================
     # CLIP ANNOTATIONS (2 tools)
@@ -3907,46 +3754,19 @@ class LiveAPITools:
 
     def get_clip_annotation(self, track_index, clip_index):
         """Get clip annotation text"""
-        try:
-            track = self.song.tracks[track_index]
-            clip_slot = track.clip_slots[clip_index]
-
-            if not clip_slot.has_clip:
-                return {"ok": False, "error": "No clip in slot"}
-
-            clip = clip_slot.clip
-
-            if hasattr(clip, 'annotation'):
-                return {
-                    "ok": True,
-                    "annotation": str(clip.annotation)
-                }
-            else:
-                return {"ok": False, "error": "Clip annotation not available"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        if clip_index < 0 or clip_index >= len(self.song.tracks[track_index].clip_slots):
+            return {"ok": False, "error": "Invalid clip index"}
+        return {"ok": False, "error": "Clip annotation is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). There is no Clip.annotation."}
 
     def set_clip_annotation(self, track_index, clip_index, annotation_text):
         """Set clip annotation text"""
-        try:
-            track = self.song.tracks[track_index]
-            clip_slot = track.clip_slots[clip_index]
-
-            if not clip_slot.has_clip:
-                return {"ok": False, "error": "No clip in slot"}
-
-            clip = clip_slot.clip
-
-            if hasattr(clip, 'annotation'):
-                clip.annotation = str(annotation_text)
-                return {
-                    "ok": True,
-                    "annotation": str(clip.annotation)
-                }
-            else:
-                return {"ok": False, "error": "Clip annotation not available"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        if clip_index < 0 or clip_index >= len(self.song.tracks[track_index].clip_slots):
+            return {"ok": False, "error": "Invalid clip index"}
+        return {"ok": False, "error": "Clip annotation is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). There is no Clip.annotation."}
 
     # ========================================================================
     # TRACK DELAY COMPENSATION (2 tools)
@@ -3954,34 +3774,15 @@ class LiveAPITools:
 
     def get_track_delay(self, track_index):
         """Get track delay compensation in samples"""
-        try:
-            track = self.song.tracks[track_index]
-
-            if hasattr(track, 'delay'):
-                return {
-                    "ok": True,
-                    "delay": float(track.delay)
-                }
-            else:
-                return {"ok": False, "error": "Track delay not available"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        return {"ok": False, "error": "Track delay is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). There is no Track.delay."}
 
     def set_track_delay(self, track_index, delay_samples):
         """Set track delay compensation in samples"""
-        try:
-            track = self.song.tracks[track_index]
-
-            if hasattr(track, 'delay'):
-                track.delay = float(delay_samples)
-                return {
-                    "ok": True,
-                    "delay": float(track.delay)
-                }
-            else:
-                return {"ok": False, "error": "Track delay not available"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        return {"ok": False, "error": "Track delay is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). There is no Track.delay."}
 
     # ========================================================================
     # ARRANGEMENT VIEW CLIPS (3 tools)
@@ -4085,77 +3886,41 @@ class LiveAPITools:
 
     def get_metronome_volume(self):
         """Get metronome volume"""
-        try:
-            if hasattr(self.song, 'metronome'):
-                return {
-                    "ok": True,
-                    "volume": float(self.song.metronome)
-                }
-            else:
-                return {"ok": False, "error": "Metronome volume not available"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        return {"ok": False, "error": "Metronome volume is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). Song.metronome is the on/off bool, not a volume."}
 
     def set_metronome_volume(self, volume):
         """Set metronome volume (0.0 to 1.0)"""
-        try:
-            if hasattr(self.song, 'metronome'):
-                self.song.metronome = float(volume)
-                return {
-                    "ok": True,
-                    "volume": float(self.song.metronome)
-                }
-            else:
-                return {"ok": False, "error": "Metronome volume not available"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        return {"ok": False, "error": "Metronome volume is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). Song.metronome is the on/off bool, not a volume."}
 
     # ========================================================================
     # MIDI CC/PROGRAM CHANGE (2 tools)
     # ========================================================================
 
     def send_midi_cc(self, track_index, cc_number, cc_value, channel=0):
-        """Send MIDI CC message to a track"""
+        """Send a MIDI Control Change message via the control surface."""
         try:
-            # MIDI CC status byte: 176 (0xB0) + channel
-            # Format: (status_byte, cc_number, cc_value)
-            status_byte = 176 + int(channel)
-            midi_bytes = (int(status_byte), int(cc_number), int(cc_value))
-
-            # Send MIDI via song.send_midi
-            if hasattr(self.song, 'send_midi'):
-                self.song.send_midi(midi_bytes)
-                return {
-                    "ok": True,
-                    "cc_number": int(cc_number),
-                    "cc_value": int(cc_value),
-                    "channel": int(channel),
-                    "message": "MIDI CC sent"
-                }
-            else:
-                return {"ok": False, "error": "send_midi not available"}
+            status_byte = 0xB0 | (max(1, min(16, int(channel))) - 1)
+            midi_bytes = (status_byte, int(cc_number) & 0x7F, int(cc_value) & 0x7F)
+            self.c_instance.send_midi(midi_bytes)
+            return {
+                "ok": True,
+                "message": "MIDI CC sent",
+                "bytes": list(midi_bytes)
+            }
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
     def send_program_change(self, track_index, program_number, channel=0):
-        """Send MIDI Program Change message to a track"""
+        """Send a MIDI Program Change message via the control surface."""
         try:
-            # MIDI Program Change status byte: 192 (0xC0) + channel
-            # Format: (status_byte, program_number)
-            status_byte = 192 + int(channel)
-            midi_bytes = (int(status_byte), int(program_number))
-
-            # Send MIDI via song.send_midi
-            if hasattr(self.song, 'send_midi'):
-                self.song.send_midi(midi_bytes)
-                return {
-                    "ok": True,
-                    "program_number": int(program_number),
-                    "channel": int(channel),
-                    "message": "MIDI Program Change sent"
-                }
-            else:
-                return {"ok": False, "error": "send_midi not available"}
+            status_byte = 0xC0 | (max(1, min(16, int(channel))) - 1)
+            midi_bytes = (status_byte, int(program_number) & 0x7F)
+            self.c_instance.send_midi(midi_bytes)
+            return {
+                "ok": True,
+                "message": "MIDI Program Change sent",
+                "bytes": list(midi_bytes)
+            }
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -4456,19 +4221,9 @@ class LiveAPITools:
 
     def delete_take_lane(self, track_index, lane_index):
         """Delete a take lane (Live 12+)"""
-        try:
-            track = self.song.tracks[track_index]
-
-            if hasattr(track, 'delete_take_lane'):
-                track.delete_take_lane(lane_index)
-                return {
-                    "ok": True,
-                    "message": "Take lane deleted"
-                }
-            else:
-                return {"ok": False, "error": "Take lanes not available (Live 12+ only)"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        if track_index < 0 or track_index >= len(self.song.tracks):
+            return {"ok": False, "error": "Invalid track index"}
+        return {"ok": False, "error": "Deleting take lanes is not exposed by the Live Object Model (GUI-only / no such member in Live 12.4). There is no Track.delete_take_lane()."}
 
     # ========================================================================
     # APPLICATION METHODS (4 tools) - LIVE 12

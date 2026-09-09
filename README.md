@@ -92,7 +92,7 @@ This implementation provides **220 tools across 44 categories** based on:
 | **Display Values** | 2 | Get parameter values as shown in UI |
 | **Additional Properties** | 10 | Clip start time, track/scene states, signatures |
 
-**Total: 220 Tools**
+**Total: ~220 Tools** (a handful are GUI-only in Live and return an honest "not exposed by the Live Object Model" error — see [Not supported by the Live API](#not-supported-by-the-live-api)).
 
 ## Quick Start
 
@@ -170,8 +170,19 @@ send_command('launch_clip', track_index=track_index, scene_index=0)
 ## Documentation
 
 - **[Installation Guide](docs/INSTALLATION.md)** - Detailed installation instructions
-- **[API Reference](docs/API_REFERENCE.md)** - Complete list of all 220 tools
-- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Architecture](docs/ARCHITECTURE.md)** - How the socket server / queue works
+- **[Windows install notes](docs/install-notes-windows.md)** and **[smoke-test runbook](docs/smoke-test-runbook.md)** - Windows deploy + validation
+- The live, authoritative tool list is always available via the `get_available_tools` action.
+
+### Not supported by the Live API
+
+A few advertised actions reference Live Object Model members that don't exist in
+current Live (verified on 12.4), so they return an honest
+`{"ok": false, "error": "... not exposed by the Live Object Model"}` rather than
+silently doing nothing: track **grouping / ungroup**, track **freeze / flatten**,
+**track delay**, **track & clip annotations**, **clip follow-actions**, track
+**groove amount**, **take-lane delete**, and **metronome volume**. These are
+GUI-only in Live. (See issue #3.)
 
 ## Examples
 

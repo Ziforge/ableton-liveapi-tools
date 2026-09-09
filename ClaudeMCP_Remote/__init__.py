@@ -368,9 +368,9 @@ class ClaudeMCP:
             elif action == 'set_track_fold_state':
                 return self.tools.set_track_fold_state(command.get('track_index', 0), command.get('folded', True))
             elif action == 'set_track_input_routing':
-                return self.tools.set_track_input_routing(command.get('track_index', 0), command.get('routing_type_name', ''))
+                return self.tools.set_track_input_routing(command.get('track_index', 0), command.get('routing_type_name', command.get('routing_type', '')), command.get('routing_channel_name', command.get('routing_channel')))
             elif action == 'set_track_output_routing':
-                return self.tools.set_track_output_routing(command.get('track_index', 0), command.get('routing_type_name', ''))
+                return self.tools.set_track_output_routing(command.get('track_index', 0), command.get('routing_type_name', command.get('routing_type', '')))
 
             # Send operations
             elif action == 'set_track_send':
@@ -485,6 +485,10 @@ class ClaudeMCP:
                 return self.tools.load_device_from_browser(command.get('track_index', 0), command.get('device_name', ''))
             elif action == 'get_browser_items':
                 return self.tools.get_browser_items(command.get('category', 'devices'))
+            elif action == 'load_device':
+                return self.tools.load_device(command.get('track_index', 0), command.get('name', command.get('device_name', '')), command.get('category', 'all'))
+            elif action == 'search_browser':
+                return self.tools.search_browser(command.get('query'), command.get('category', 'all'), command.get('limit', 40))
 
             # Loop & Locator operations
             elif action == 'set_loop_enabled':
@@ -773,6 +777,27 @@ class ClaudeMCP:
                 return self.tools.get_signature_numerator()
             elif action == 'get_signature_denominator':
                 return self.tools.get_signature_denominator()
+
+            # Return track (aux) management
+            elif action == 'rename_return_track':
+                return self.tools.rename_return_track(command.get('return_index', 0), command.get('name', ''))
+            elif action == 'set_return_track_color':
+                return self.tools.set_return_track_color(command.get('return_index', 0), command.get('color_index', 0))
+            elif action == 'set_return_track_output_routing':
+                return self.tools.set_return_track_output_routing(command.get('return_index', 0), command.get('routing_type_name', command.get('routing_type', '')), command.get('sub_routing'))
+            elif action == 'get_available_output_ports':
+                return self.tools.get_available_output_ports(command.get('return_index', 0))
+
+            # Rig setup helpers
+            elif action == 'get_available_midi_ports':
+                return self.tools.get_available_midi_ports(command.get('track_index', 0))
+            elif action == 'setup_hardware_midi_track':
+                return self.tools.setup_hardware_midi_track(
+                    command.get('name'), command.get('input_port'), command.get('output_port'),
+                    command.get('input_channel'), command.get('output_channel'),
+                    command.get('monitor', 'in'), command.get('arm', False))
+            elif action == 'apply_rig_template':
+                return self.tools.apply_rig_template(command.get('tracks'))
 
             # Unknown action
             else:

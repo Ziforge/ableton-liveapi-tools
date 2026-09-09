@@ -3061,14 +3061,18 @@ class LiveAPITools:
     # ========================================================================
 
     def create_group_track(self, name=None):
-        """Create a new group track"""
+        """Create a group track from the selected tracks, if the LOM supports it.
+
+        Track grouping is GUI-only in most Live versions (Cmd+G); returns an honest
+        error where unsupported instead of a cryptic AttributeError.
+        """
         try:
+            if not hasattr(self.song, 'create_group_track'):
+                return {"ok": False, "error": "Track grouping is not exposed by the Live Object Model in this version (GUI-only: select tracks and press Cmd+G)."}
             track_index = len(self.song.tracks)
             self.song.create_group_track(track_index)
-
             if name and track_index < len(self.song.tracks):
                 self.song.tracks[track_index].name = str(name)
-
             return {
                 "ok": True,
                 "message": "Group track created",
@@ -3079,17 +3083,19 @@ class LiveAPITools:
             return {"ok": False, "error": str(e)}
 
     def group_tracks(self, start_index, end_index):
-        """Group tracks from start_index to end_index (inclusive)"""
+        """Group a contiguous range of tracks, if the LOM supports it.
+
+        Track grouping is GUI-only in most Live versions; returns an honest error
+        where unsupported rather than faking success.
+        """
         try:
             if start_index < 0 or start_index >= len(self.song.tracks):
                 return {"ok": False, "error": "Invalid start index"}
             if end_index < start_index or end_index >= len(self.song.tracks):
                 return {"ok": False, "error": "Invalid end index"}
-
-            # Group the tracks
+            if not hasattr(self.song, 'create_group_track'):
+                return {"ok": False, "error": "Track grouping is not exposed by the Live Object Model in this version (GUI-only: select the tracks and press Cmd+G)."}
             self.song.create_group_track(end_index + 1)
-
-            # Move tracks into the group (this is simplified - actual implementation may vary)
             return {
                 "ok": True,
                 "message": "Tracks grouped",

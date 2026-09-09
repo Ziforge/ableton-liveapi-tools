@@ -728,19 +728,8 @@ class LiveAPITools:
     # ========================================================================
 
     def add_device(self, track_index, device_name):
-        """Add device to track"""
-        try:
-            if track_index < 0 or track_index >= len(self.song.tracks):
-                return {"ok": False, "error": "Invalid track index"}
-
-            # This is a simplified version - actual device loading requires browser API
-            return {
-                "ok": True,
-                "message": "Device add requested (browser API required for full implementation)",
-                "device_name": device_name
-            }
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        """Add a device/plugin/M4L to a track by name (real browser load)."""
+        return self.load_device(track_index, device_name, "all")
 
     def get_track_devices(self, track_index):
         """Get all devices on track"""
@@ -1023,33 +1012,68 @@ class LiveAPITools:
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
-    def set_track_input_routing(self, track_index, routing_type, routing_channel):
-        """Set track input routing"""
+    def _match_routing(self, items, wanted):
+        """Find a routing type/channel object by display name (exact, then case-insensitive substring)."""
+        objs = list(items)
+        names = [str(o.display_name) for o in objs]
+        w = str(wanted)
+        for o in objs:
+            if str(o.display_name) == w:
+                return o, names
+        for o in objs:
+            if w.lower() in str(o.display_name).lower():
+                return o, names
+        return None, names
+
+    def set_track_input_routing(self, track_index, routing_type, routing_channel=None):
+        """Set track input routing type (by display name) and optionally the input channel (by display name)."""
         try:
             if track_index < 0 or track_index >= len(self.song.tracks):
                 return {"ok": False, "error": "Invalid track index"}
 
             track = self.song.tracks[track_index]
-            return {
-                "ok": True,
-                "message": "Input routing set (requires routing configuration)",
-                "routing_type": routing_type,
-                "routing_channel": routing_channel
-            }
+            result = {"ok": True, "track_index": track_index}
+
+            if routing_type not in (None, ""):
+                if not hasattr(track, 'available_input_routing_types'):
+                    return {"ok": False, "error": "Track has no input routing"}
+                match, names = self._match_routing(track.available_input_routing_types, routing_type)
+                if match is None:
+                    return {"ok": False, "error": "No input routing matching '%s'" % routing_type, "available": names}
+                track.input_routing_type = match
+                result["input_routing_type"] = str(track.input_routing_type.display_name)
+
+            if routing_channel not in (None, ""):
+                if not hasattr(track, 'available_input_routing_channels'):
+                    return {"ok": False, "error": "Track has no input routing channels"}
+                cmatch, cnames = self._match_routing(track.available_input_routing_channels, routing_channel)
+                if cmatch is None:
+                    return {"ok": False, "error": "No input channel matching '%s'" % routing_channel, "available_channels": cnames}
+                track.input_routing_channel = cmatch
+                result["input_routing_channel"] = str(track.input_routing_channel.display_name)
+
+            return result
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
     def set_track_output_routing(self, track_index, routing_type):
-        """Set track output routing"""
+        """Set track output routing type by matching the routing display name (exact, then substring)."""
         try:
             if track_index < 0 or track_index >= len(self.song.tracks):
                 return {"ok": False, "error": "Invalid track index"}
 
             track = self.song.tracks[track_index]
+            if not hasattr(track, 'available_output_routing_types'):
+                return {"ok": False, "error": "Track has no output routing"}
+            match, names = self._match_routing(track.available_output_routing_types, routing_type)
+            if match is None:
+                return {"ok": False, "error": "No output routing matching '%s'" % routing_type, "available": names}
+            track.output_routing_type = match
             return {
                 "ok": True,
-                "message": "Output routing set (requires routing configuration)",
-                "routing_type": routing_type
+                "message": "Output routing set",
+                "track_index": track_index,
+                "output_routing_type": str(track.output_routing_type.display_name)
             }
         except Exception as e:
             return {"ok": False, "error": str(e)}
@@ -1682,33 +1706,23 @@ class LiveAPITools:
             if device_index < 0 or device_index >= len(track.devices):
                 return {"ok": False, "error": "Invalid device index"}
 
-            # This is a simplified implementation
+            dev = track.devices[device_index]
+            params = [str(p.name) for p in dev.parameters]
             return {
                 "ok": True,
-                "message": "Device preset browsing requires browser API",
-                "device_index": device_index
+                "device_index": device_index,
+                "device_name": str(dev.name),
+                "class_name": str(getattr(dev, "class_name", "")),
+                "num_parameters": len(params),
+                "parameters": params,
+                "note": "The Live Object Model exposes no preset list for a device. Use load_device to load a device/preset from the browser, or set parameters directly."
             }
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
     def set_device_preset(self, track_index, device_index, preset_index):
-        """Load preset for device"""
-        try:
-            if track_index < 0 or track_index >= len(self.song.tracks):
-                return {"ok": False, "error": "Invalid track index"}
-
-            track = self.song.tracks[track_index]
-            if device_index < 0 or device_index >= len(track.devices):
-                return {"ok": False, "error": "Invalid device index"}
-
-            # This is a simplified implementation
-            return {
-                "ok": True,
-                "message": "Device preset loading requires browser API",
-                "preset_index": preset_index
-            }
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        """Not exposed by the Live Object Model. Use load_device (browser) or set parameters directly."""
+        return {"ok": False, "error": "Loading a device preset by index is not exposed by the Live Object Model. Use load_device to load from the browser, or set device parameters directly."}
 
     def randomize_device_parameters(self, track_index, device_index):
         """Randomize all device parameters"""
@@ -1863,34 +1877,129 @@ class LiveAPITools:
     # ========================================================================
 
     def browse_devices(self):
-        """Get list of available devices from browser"""
+        """List real loadable device names from the browser (instruments + audio/MIDI effects)."""
         try:
-            # Note: Browser access is limited in LiveAPI
-            # This returns a basic list of device types
-            device_types = [
-                "Instrument", "Audio Effect", "MIDI Effect",
-                "Drum Rack", "Instrument Rack", "Effect Rack"
-            ]
+            out = []
+            for _, root in self._browser_roots("devices"):
+                self._walk_browser(root, None, out, 400, 0)
+            names, seen = [], set()
+            for it in out:
+                try:
+                    n = str(it.name)
+                except Exception:
+                    continue
+                if n not in seen:
+                    seen.add(n)
+                    names.append(n)
+            return {"ok": True, "count": len(names), "devices": names}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # BROWSER: load native devices, VST/AU plugins, Max for Live (.amxd)
+    # ========================================================================
+
+    def _get_browser(self):
+        return Live.Application.get_application().browser
+
+    def _browser_roots(self, category):
+        b = self._get_browser()
+        m = {}
+        for k in ("instruments", "audio_effects", "midi_effects", "plugins",
+                  "max_for_live", "drums", "sounds", "samples", "user_library", "packs"):
+            m[k] = getattr(b, k, None)
+        cat = (category or "all").lower()
+        device_keys = ["instruments", "audio_effects", "midi_effects", "plugins", "max_for_live"]
+        if cat in ("all", "devices"):
+            keys = device_keys
+        elif cat in ("max", "m4l", "maxforlive", "max_for_live"):
+            keys = ["max_for_live"]
+        elif cat in ("plugin", "plugins", "vst", "au"):
+            keys = ["plugins"]
+        elif cat in m:
+            keys = [cat]
+        else:
+            keys = device_keys
+        return [(k, m[k]) for k in keys if m.get(k) is not None]
+
+    def _walk_browser(self, item, query, out, limit, depth, maxdepth=7):
+        if item is None or len(out) >= limit or depth > maxdepth:
+            return
+        try:
+            children = list(item.children)
+        except Exception:
+            children = []
+        for ch in children:
+            if len(out) >= limit:
+                return
+            try:
+                nm = str(ch.name)
+            except Exception:
+                continue
+            try:
+                loadable = bool(ch.is_loadable)
+            except Exception:
+                loadable = False
+            if loadable and (query is None or query.lower() in nm.lower()):
+                out.append(ch)
+            try:
+                is_folder = bool(ch.is_folder)
+            except Exception:
+                is_folder = False
+            if is_folder or not loadable:
+                self._walk_browser(ch, query, out, limit, depth + 1, maxdepth)
+
+    def search_browser(self, query, category="all", limit=40):
+        """Search the browser for loadable items (devices/plugins/M4L) matching a name."""
+        try:
+            out = []
+            for _, root in self._browser_roots(category):
+                self._walk_browser(root, query, out, limit, 0)
+                if len(out) >= limit:
+                    break
+            items = []
+            for it in out[:limit]:
+                try:
+                    items.append({"name": str(it.name), "uri": str(getattr(it, "uri", ""))})
+                except Exception:
+                    pass
+            return {"ok": True, "query": query, "category": category, "count": len(items), "items": items}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def load_device(self, track_index, name, category="all"):
+        """Load a native device, VST/AU plugin, or Max for Live device onto a track by name.
+
+        Traverses the Live browser, prefers an exact (case-insensitive) name match,
+        else the first substring match. category: all|instruments|audio_effects|
+        midi_effects|plugins|max_for_live|drums|sounds|user_library.
+        """
+        try:
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                return {"ok": False, "error": "Invalid track index"}
+            cands = []
+            for _, root in self._browser_roots(category):
+                self._walk_browser(root, name, cands, 60, 0)
+            if not cands:
+                return {"ok": False, "error": "No loadable browser item matching '%s'" % name, "category": category}
+            exact = [c for c in cands if str(c.name).lower() == str(name).lower()]
+            item = exact[0] if exact else cands[0]
+            # target the track, then load onto its device chain
+            self.song.view.selected_track = self.song.tracks[track_index]
+            self._get_browser().load_item(item)
             return {
                 "ok": True,
-                "device_types": device_types,
-                "count": len(device_types)
+                "track_index": track_index,
+                "loaded": str(item.name),
+                "match": "exact" if exact else "substring",
+                "other_matches": [str(c.name) for c in cands[:8] if c is not item]
             }
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
     def browse_plugins(self, plugin_type="vst"):
-        """Browse available plugins (VST, AU, etc.)"""
-        try:
-            # Note: Plugin browsing is limited in LiveAPI
-            # Returns placeholder info
-            return {
-                "ok": True,
-                "message": "Plugin browsing via LiveAPI is limited",
-                "plugin_type": plugin_type
-            }
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        """List installed plugins (real browser walk)."""
+        return self.search_browser(None, "plugins", limit=200)
 
     def load_device_from_browser(self, track_index, device_name):
         """Load a device from browser onto track (alias for add_device)"""
@@ -1898,17 +2007,8 @@ class LiveAPITools:
         return self.add_device(track_index, device_name)
 
     def get_browser_items(self, category="devices"):
-        """Get browser items by category"""
-        try:
-            categories = ["devices", "plugins", "instruments", "audio_effects", "midi_effects"]
-            return {
-                "ok": True,
-                "category": category,
-                "available_categories": categories,
-                "message": "Browser item enumeration is limited in LiveAPI"
-            }
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+        """List loadable browser items for a category (real browser walk)."""
+        return self.search_browser(None, category, limit=300)
 
     # ========================================================================
     # LOOP AND LOCATOR OPERATIONS
@@ -1935,23 +2035,36 @@ class LiveAPITools:
             return {"ok": False, "error": str(e)}
 
     def create_locator(self, time_in_beats, name="Locator"):
-        """Create a locator/cue point at specified time"""
+        """Create a cue point (locator) at the given time in beats via set_or_delete_cue."""
         try:
-            # Note: Direct locator creation may not be available in all LiveAPI versions
-            # Using cue point functionality if available
-            if hasattr(self.song, 'create_cue_point'):
-                self.song.create_cue_point(float(time_in_beats))
-                return {
-                    "ok": True,
-                    "message": "Cue point created",
-                    "time": float(time_in_beats),
-                    "name": name
-                }
-            else:
-                return {
-                    "ok": False,
-                    "error": "Cue point creation not available in this Ableton version"
-                }
+            song = self.song
+            if not hasattr(song, 'set_or_delete_cue'):
+                return {"ok": False, "error": "Cue points not supported in this Live version"}
+            before = list(song.cue_points) if hasattr(song, 'cue_points') else []
+            prev_time = song.current_song_time
+            song.current_song_time = float(time_in_beats)
+            song.set_or_delete_cue()
+            after = list(song.cue_points) if hasattr(song, 'cue_points') else []
+            new_cue = None
+            for cp in after:
+                if cp not in before:
+                    new_cue = cp
+                    break
+            if new_cue is not None and name:
+                try:
+                    new_cue.name = str(name)
+                except Exception:
+                    pass
+            song.current_song_time = prev_time
+            created = new_cue is not None
+            return {
+                "ok": True,
+                "message": "Locator created" if created else "Cue toggled (an existing locator at that time was removed)",
+                "created": created,
+                "time": float(time_in_beats),
+                "name": name,
+                "num_locators": len(after)
+            }
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -2075,46 +2188,195 @@ class LiveAPITools:
             return {"ok": False, "error": str(e)}
 
     def set_track_input_sub_routing(self, track_index, sub_routing):
-        """Set track input sub-routing"""
+        """Set track input channel (sub-routing) by display name, e.g. a MIDI channel or 'All Channels'."""
         try:
             if track_index < 0 or track_index >= len(self.song.tracks):
                 return {"ok": False, "error": "Invalid track index"}
 
             track = self.song.tracks[track_index]
-
-            if hasattr(track, 'input_sub_routing'):
-                # Sub-routing is typically set by index or name
-                # This is a simplified implementation
-                return {
-                    "ok": True,
-                    "message": "Input sub-routing setting is limited in LiveAPI",
-                    "track_index": track_index,
-                    "requested_sub_routing": str(sub_routing)
-                }
-            else:
+            if not hasattr(track, 'available_input_routing_channels'):
                 return {"ok": False, "error": "Input sub-routing not available"}
+            match, names = self._match_routing(track.available_input_routing_channels, sub_routing)
+            if match is None:
+                return {"ok": False, "error": "No input channel matching '%s'" % sub_routing, "available_channels": names}
+            track.input_routing_channel = match
+            return {
+                "ok": True,
+                "message": "Input channel set",
+                "track_index": track_index,
+                "input_routing_channel": str(track.input_routing_channel.display_name)
+            }
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
     def set_track_output_sub_routing(self, track_index, sub_routing):
-        """Set track output sub-routing"""
+        """Set track output channel (sub-routing) by display name, e.g. a specific MIDI channel."""
         try:
             if track_index < 0 or track_index >= len(self.song.tracks):
                 return {"ok": False, "error": "Invalid track index"}
 
             track = self.song.tracks[track_index]
-
-            if hasattr(track, 'output_sub_routing'):
-                # Sub-routing is typically set by index or name
-                # This is a simplified implementation
-                return {
-                    "ok": True,
-                    "message": "Output sub-routing setting is limited in LiveAPI",
-                    "track_index": track_index,
-                    "requested_sub_routing": str(sub_routing)
-                }
-            else:
+            if not hasattr(track, 'available_output_routing_channels'):
                 return {"ok": False, "error": "Output sub-routing not available"}
+            match, names = self._match_routing(track.available_output_routing_channels, sub_routing)
+            if match is None:
+                return {"ok": False, "error": "No output channel matching '%s'" % sub_routing, "available_channels": names}
+            track.output_routing_channel = match
+            return {
+                "ok": True,
+                "message": "Output channel set",
+                "track_index": track_index,
+                "output_routing_channel": str(track.output_routing_channel.display_name)
+            }
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_available_midi_ports(self, track_index=0):
+        """List available input/output routing type names (MIDI ports as Live sees them) using a reference track."""
+        try:
+            if len(self.song.tracks) == 0:
+                return {"ok": False, "error": "No tracks yet; create a MIDI track first"}
+            if track_index < 0 or track_index >= len(self.song.tracks):
+                track_index = 0
+            track = self.song.tracks[track_index]
+            ins = [str(r.display_name) for r in track.available_input_routing_types] if hasattr(track, 'available_input_routing_types') else []
+            outs = [str(r.display_name) for r in track.available_output_routing_types] if hasattr(track, 'available_output_routing_types') else []
+            return {"ok": True, "reference_track": track_index, "inputs": ins, "outputs": outs}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def setup_hardware_midi_track(self, name=None, input_port=None, output_port=None,
+                                  input_channel=None, output_channel=None,
+                                  monitor="in", arm=False):
+        """Create a MIDI track and route it to hardware in one call.
+
+        input_port/output_port match a routing-type display name; channels match a
+        routing-channel display name. monitor: 'in' | 'auto' | 'off'.
+        """
+        try:
+            created = self.create_midi_track(name)
+            if not created.get("ok"):
+                return created
+            ti = created["track_index"]
+            steps = {"ok": True, "track_index": ti, "name": created.get("name")}
+
+            if input_port is not None:
+                r = self.set_track_input_routing(ti, input_port, input_channel)
+                if not r.get("ok"):
+                    r["track_index"] = ti
+                    return r
+                steps["input"] = r.get("input_routing_type")
+                if "input_routing_channel" in r:
+                    steps["input_channel"] = r.get("input_routing_channel")
+
+            if output_port is not None:
+                r = self.set_track_output_routing(ti, output_port)
+                if not r.get("ok"):
+                    r["track_index"] = ti
+                    return r
+                steps["output"] = r.get("output_routing_type")
+                if output_channel is not None:
+                    rc = self.set_track_output_sub_routing(ti, output_channel)
+                    if not rc.get("ok"):
+                        rc["track_index"] = ti
+                        return rc
+                    steps["output_channel"] = rc.get("output_routing_channel")
+
+            mon = {"in": 0, "auto": 1, "off": 2}.get(str(monitor).lower(), 0)
+            self.set_track_current_monitoring_state(ti, mon)
+            steps["monitor"] = monitor
+            if arm:
+                self.arm_track(ti, True)
+                steps["armed"] = True
+            return steps
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def apply_rig_template(self, tracks=None):
+        """Build multiple hardware MIDI tracks from a list of specs.
+
+        Each spec: {name, input_port, output_port, input_channel?, output_channel?, monitor?, arm?}
+        """
+        try:
+            if not tracks:
+                return {"ok": False, "error": "Provide 'tracks': a list of track specs"}
+            results = []
+            for spec in tracks:
+                results.append(self.setup_hardware_midi_track(
+                    name=spec.get("name"),
+                    input_port=spec.get("input_port"),
+                    output_port=spec.get("output_port"),
+                    input_channel=spec.get("input_channel"),
+                    output_channel=spec.get("output_channel"),
+                    monitor=spec.get("monitor", "in"),
+                    arm=spec.get("arm", False)))
+            ok = all(r.get("ok") for r in results)
+            return {"ok": ok, "created": len(results), "results": results}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    # ========================================================================
+    # RETURN TRACK MANAGEMENT (auxes)
+    # ========================================================================
+
+    def rename_return_track(self, return_index, name):
+        """Rename a return (aux) track."""
+        try:
+            rts = self.song.return_tracks
+            if return_index < 0 or return_index >= len(rts):
+                return {"ok": False, "error": "Invalid return index"}
+            rts[return_index].name = str(name)
+            return {"ok": True, "return_index": return_index, "name": str(rts[return_index].name)}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_return_track_color(self, return_index, color_index):
+        """Set a return (aux) track's colour."""
+        try:
+            rts = self.song.return_tracks
+            if return_index < 0 or return_index >= len(rts):
+                return {"ok": False, "error": "Invalid return index"}
+            rts[return_index].color = int(color_index)
+            return {"ok": True, "return_index": return_index, "color": rts[return_index].color}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def set_return_track_output_routing(self, return_index, routing_type, sub_routing=None):
+        """Route a return (aux) track's output to a device output by display name (+ optional channel)."""
+        try:
+            rts = self.song.return_tracks
+            if return_index < 0 or return_index >= len(rts):
+                return {"ok": False, "error": "Invalid return index"}
+            track = rts[return_index]
+            if not hasattr(track, 'available_output_routing_types'):
+                return {"ok": False, "error": "Return track has no output routing"}
+            match, names = self._match_routing(track.available_output_routing_types, routing_type)
+            if match is None:
+                return {"ok": False, "error": "No output routing matching '%s'" % routing_type, "available": names}
+            track.output_routing_type = match
+            result = {"ok": True, "return_index": return_index,
+                      "output_routing_type": str(track.output_routing_type.display_name)}
+            if sub_routing not in (None, "") and hasattr(track, 'available_output_routing_channels'):
+                cmatch, cnames = self._match_routing(track.available_output_routing_channels, sub_routing)
+                if cmatch is None:
+                    return {"ok": False, "error": "No output channel matching '%s'" % sub_routing, "available_channels": cnames}
+                track.output_routing_channel = cmatch
+                result["output_routing_channel"] = str(track.output_routing_channel.display_name)
+            return result
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def get_available_output_ports(self, return_index=0):
+        """List a return track's available output routing types (device output ports)."""
+        try:
+            rts = self.song.return_tracks
+            if len(rts) == 0:
+                return {"ok": False, "error": "No return tracks"}
+            if return_index < 0 or return_index >= len(rts):
+                return_index = 0
+            track = rts[return_index]
+            outs = [str(r.display_name) for r in track.available_output_routing_types] if hasattr(track, 'available_output_routing_types') else []
+            return {"ok": True, "return_index": return_index, "outputs": outs}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -2877,12 +3139,8 @@ class LiveAPITools:
             if not (hasattr(track, 'is_foldable') and track.is_foldable):
                 return {"ok": False, "error": "Track is not a group track"}
 
-            # Ungroup (LiveAPI may not have direct ungroup, this is a placeholder)
-            return {
-                "ok": True,
-                "message": "Ungroup operation requested (may require manual implementation)",
-                "group_track_index": group_track_index
-            }
+            # The Live Object Model has no ungroup method — it is GUI-only.
+            return {"ok": False, "error": "Ungrouping is not exposed by the Live Object Model (GUI-only). Delete the group track to remove it and its children, or ungroup manually."}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -2937,15 +3195,9 @@ class LiveAPITools:
     def scroll_view_to_time(self, time_in_beats):
         """Scroll arrangement view to specific time"""
         try:
-            if hasattr(self.song.view, 'visible_tracks'):
-                # This is a simplified implementation
-                return {
-                    "ok": True,
-                    "message": "View scroll requested (limited API support)",
-                    "time": float(time_in_beats)
-                }
-            else:
-                return {"ok": False, "error": "View scrolling not available"}
+            # Move the arrangement insert marker/playhead to the time; the view follows it.
+            self.song.current_song_time = float(time_in_beats)
+            return {"ok": True, "time": float(self.song.current_song_time)}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -3394,13 +3646,23 @@ class LiveAPITools:
             if hasattr(clip, 'automation_envelope'):
                 envelope = clip.automation_envelope(param)
                 if envelope:
-                    # Get envelope value at different time points
-                    # Note: Full implementation would iterate through all steps
+                    length = float(getattr(clip, 'length', 0.0)) or 0.0
+                    n = 33
+                    values = []
+                    if length > 0 and hasattr(envelope, 'value_at_time'):
+                        for k in range(n):
+                            t = length * k / (n - 1)
+                            try:
+                                values.append([round(t, 4), float(envelope.value_at_time(t))])
+                            except Exception:
+                                pass
                     return {
                         "ok": True,
                         "parameter_name": str(param.name),
                         "has_envelope": True,
-                        "message": "Use insert_step/remove_step to modify automation"
+                        "clip_length": length,
+                        "samples": len(values),
+                        "values": values
                     }
                 else:
                     return {
@@ -3772,15 +4034,9 @@ class LiveAPITools:
         """Consolidate arrangement clips in time range"""
         try:
             track = self.song.tracks[track_index]
-
-            # Consolidation requires specific API calls
-            # This is a placeholder for the consolidation logic
-            return {
-                "ok": True,
-                "message": "Clip consolidation initiated",
-                "start_time": float(start_time),
-                "end_time": float(end_time)
-            }
+            _ = track  # validated above
+            # Arrangement consolidation is a GUI operation not exposed by the Live Object Model.
+            return {"ok": False, "error": "Arrangement consolidation is not exposed by the Live Object Model (GUI-only)."}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 

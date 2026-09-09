@@ -1,6 +1,6 @@
 param(
     [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path,
-    [string]$Host = "127.0.0.1",
+    [string]$TargetHost = "127.0.0.1",
     [int]$Port = 9004,
     [string]$PythonLauncher = "py",
     [string]$LogFile = ""
@@ -30,7 +30,7 @@ Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue |
 
 Write-Host ""
 Write-Host "Running smoke test client..."
-& $PythonLauncher -3 $clientPath --host $Host --port $Port --log-file $LogFile
+& $PythonLauncher -3 $clientPath --host $TargetHost --port $Port --log-file $LogFile
 
 Write-Host ""
 Write-Host "Raw request/response capture saved to $LogFile"
